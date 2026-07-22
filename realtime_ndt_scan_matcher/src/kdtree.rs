@@ -1,17 +1,3 @@
-// Copyright 2024 Autoware Foundation
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 //! Static 3-D kd-tree with radius search over voxel centroids. Replaces `pcl::KdTreeFLANN` for the
 //! NDT voxel-grid map. Tree construction is control-plane work and may allocate and recurse;
 //! queries use a fixed iterative stack. `no_std` + `alloc`; no external dependency.
