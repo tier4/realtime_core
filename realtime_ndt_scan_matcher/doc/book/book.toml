@@ -1,0 +1,15 @@
+[book]
+title = "realtime_ndt_scan_matcher — the NDT engine crate"
+authors = ["Autoware Foundation"]
+language = "en"
+src = "src"
+description = "Design, real-time, and porting documentation for the ROS-free, no_std-capable NDT engine crate (realtime_ndt_scan_matcher)."
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/autowarefoundation/autoware_core"
+additional-js = ["mermaid.min.js", "mermaid-init.js"]
+
+[preprocessor.mermaid]
+command = "mdbook-mermaid"
