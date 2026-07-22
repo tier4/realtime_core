@@ -1,0 +1,37 @@
+[workspace]
+resolver = "3"
+members = ["realtime_ndt_scan_matcher"]
+
+# rust-hardening gates shared by every workspace member (see .claude/skills/rust-hardening).
+# Mirrors autoware_ndt_scan_matcher_rs/Cargo.toml so the crate lints identically here and upstream.
+[workspace.lints.rust]
+warnings = "deny"
+unsafe_code = "deny"
+unsafe_op_in_unsafe_fn = "deny"
+
+[workspace.lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+unreachable = "deny"
+todo = "deny"
+unimplemented = "deny"
+indexing_slicing = "deny"
+string_slice = "deny"
+unwrap_in_result = "deny"
+arithmetic_side_effects = "deny"
+let_underscore_must_use = "deny"
+as_conversions = "deny"
+cast_possible_truncation = "deny"
+cast_possible_wrap = "deny"
+cast_sign_loss = "deny"
+cast_lossless = "warn"
+float_cmp = "deny"
+lossy_float_literal = "deny"
+# Suppression hygiene — prefer self-cleaning #[expect]; every allow/expect needs a reason.
+allow_attributes = "warn"
+allow_attributes_without_reason = "deny"
+pedantic = { level = "warn", priority = -1 }
+
+[profile.release]
+overflow-checks = true
