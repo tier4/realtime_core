@@ -2,12 +2,12 @@
 
 How the target map is refreshed at runtime without disturbing concurrent alignment.
 
-## Policy and state (Rust-owned)
+## Policy vs mechanism
 
-`MapUpdateState` holds the map-update decision state: `last_update_position`, whether the next update
-must `need_rebuild`, and the loaded cell ids live in the engine. Rust decides *when* an update is
-needed (first update, and whenever the vehicle has moved far enough that the loaded map can no longer
-cover the LiDAR range) and whether a full rebuild is required.
+Deciding *when* an update is needed — first update, and whenever the vehicle has moved far enough
+that the loaded map can no longer cover the LiDAR range — and whether a full rebuild is required is a
+policy the consuming application owns. This crate provides the *mechanism*: the loaded cell ids live
+in the engine, and `scan_matcher::apply_map_update` performs the staged build and atomic publish.
 
 ## The atomic commit
 
@@ -22,11 +22,10 @@ cover the LiDAR range) and whether a full rebuild is required.
 Because the map is built off to the side and swapped in with a single atomic step
 ([Concurrency](concurrency.md)), a concurrent align never observes a partial or kd-tree-less map.
 
-## C++ / Rust split
+## Division of responsibility
 
-Rust owns the canonical map state, staging build, and atomic publication. C++ retains the ROS
-pcd-loader service I/O and debug-map publication, then supplies loaded tiles through the
-status-returning `node_map_update` boundary.
+This crate owns the canonical map state, the staging build, and the atomic publication. Map I/O —
+the pcd-loader service call and debug-map publication — belongs to the caller, which supplies loaded
+tiles through the async `MapSource` port and drives `apply_map_update`.
 
-> Source: `src/scan_matcher.rs` (`apply_map_update`), `../src/node_map_update.rs`, `src/engine.rs`
-> (`commit_from`, `clone_empty`), `../src/node_handle.rs` (`MapUpdateState`).
+> Source: `src/scan_matcher.rs` (`apply_map_update`), `src/engine.rs` (`commit_from`, `clone_empty`).

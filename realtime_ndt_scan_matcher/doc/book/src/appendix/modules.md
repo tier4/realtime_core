@@ -5,8 +5,8 @@ and ROS node modules live in the node crate and are indexed in its book.
 
 ## Core algorithm (portable, `no_std` + `alloc`)
 
-- `lib.rs` — crate root, feature gating, `nalgebra` re-export, `add`/`init_thread_pool` smoke and
-  thread-pool shims.
+- `lib.rs` — crate root, feature gating, `nalgebra` re-export, and the `init_thread_pool` /
+  rayon-worker-affinity helpers.
 - `engine.rs` — persistent `NdtEngine` handle, `MatchScratch`, config/map/align API.
 - `ndt.rs` — `align`, derivative assembly, `NdtParams` / `AlignResult` / `AlignWorkspace`.
 - `derivatives.rs` — angular + per-point score/gradient/Hessian kernels.

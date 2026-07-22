@@ -5,16 +5,11 @@ engine crate** at the heart of the Autoware NDT scan matcher's Rust port. It is 
 people who build on, review, and maintain the *algorithm*: the engine, the align hot path, the
 covariance/pose search, and the real-time / `no_std` guarantees.
 
-The engine crate holds **only** the portable algorithmic core — no `extern "C"`, no `rclcpp`, no
-ROS message types. The C ABI and the ROS 2 node live in the sibling **node crate**
-(`autoware_ndt_scan_matcher_rs`), documented in its own book; that book covers the FFI boundary,
-the `Host` vtable, the ROS node shell, and the C++→Rust symbol map. The two crates form a Cargo
-workspace:
-
-| crate | directory | role |
-|---|---|---|
-| `realtime_ndt_scan_matcher` (this book) | `autoware_ndt_scan_matcher_rs/realtime_ndt_scan_matcher/` | portable NDT engine (`no_std` + `alloc`, ROS-free) |
-| `autoware_ndt_scan_matcher_rs` | `autoware_ndt_scan_matcher_rs/` | C ABI + ROS 2 node shell (`std`), depends on the engine |
+This crate lives at `realtime_core/realtime_ndt_scan_matcher/` and holds **only** the portable
+algorithmic core — no `extern "C"`, no `rclcpp`, no ROS message types. Every path in this book is
+relative to that crate root. The C ABI and the ROS 2 node — the FFI boundary, the `Host` vtable, the
+ROS node shell, and the C++→Rust symbol map — live in a separate ROS node crate that consumes this
+engine as a dependency; that integration is out of scope here.
 
 ## Why this crate exists
 

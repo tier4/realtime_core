@@ -33,4 +33,4 @@ The per-frame WCET micro-benchmark `examples/wcet_frame.rs` measures the tail di
 numbers are in Benchmarking. A
 `rust-realtime-review` accompanies each engine/align patch.
 
-> Source: `src/ndt.rs` (the `align` WCET contract, ≈ lines 317 / 617), `examples/wcet_frame.rs`.
+> Source: `src/ndt.rs` (the `align` WCET contract), `examples/wcet_frame.rs`.

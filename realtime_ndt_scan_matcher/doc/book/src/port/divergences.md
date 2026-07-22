@@ -73,12 +73,9 @@ so the valid-domain differential tests are unaffected. Added by the 2026-07-10 h
   non-finite temperature falls back to uniform `1/n` weights; C++
   (`estimate_covariance.cpp:135`) divides unguarded. Pinned by
   `calc_weight_vec_degenerate_temperature_is_uniform`.
-- **Zero-norm quaternion guard** (node crate `../src/sensor_points.rs`, `pose_to_matrix4`): a
-  zero-norm/non-finite interpolated EKF quaternion is routed to the existing
-  interpolate-failed path (`SM_INTERPOLATE_FAILED`) instead of being normalized into NaN. Pinned by
-  `pose_to_matrix4_degenerate_quaternion_is_none`.
-- **Align-service best-pose gate** (node crate `../src/node_align_service.rs`): a particle whose
-  result pose is non-finite can never be selected as `best_pose`, even with a finite score.
+
+(Further degenerate-input guards on the sensor-input and align-service paths live in the consuming
+ROS node crate and are documented there, not here.)
 
 ## Intentional differences
 

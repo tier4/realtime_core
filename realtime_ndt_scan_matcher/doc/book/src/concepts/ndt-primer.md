@@ -34,5 +34,4 @@ The two scores NDT reports from a converged pose — transform probability and n
 transformation likelihood — are covered in [Scores: TP and NVTL](scores.md).
 
 > Source: `src/voxel_grid.rs`, `src/derivatives.rs`, `src/ndt.rs`, `src/transform.rs`
-> (`gauss_constants`); the package `README.md`. See the NDT references in the
-> appendix.
+> (`gauss_constants`).

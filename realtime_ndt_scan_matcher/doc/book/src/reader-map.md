@@ -1,8 +1,8 @@
 # How to read this book
 
-This book covers the **engine crate** (`realtime_ndt_scan_matcher`). For the FFI boundary, the
-`Host` C vtable, the ROS 2 node, and the C++→Rust symbol map, see the **node crate** book
-(`autoware_ndt_scan_matcher_rs`).
+This book covers the engine crate `realtime_ndt_scan_matcher` on its own. The FFI boundary, the
+`Host` C vtable, the ROS 2 node, and the C++→Rust symbol map belong to a separate ROS node crate
+that consumes this engine, and are out of scope here.
 
 | You are… | Start with | Then |
 |---|---|---|
@@ -16,10 +16,9 @@ This book covers the **engine crate** (`realtime_ndt_scan_matcher`). For the FFI
 - **Code that is meant to compile** is shown as tested `rust` doctests copied from the crate's
   rustdoc. **Illustrative snippets and excerpts** use `rust,ignore` or `text` and are not compiled.
 - **Paths** like `src/engine.rs` are relative to **this crate's root**
-  (`autoware_ndt_scan_matcher/autoware_ndt_scan_matcher_rs/realtime_ndt_scan_matcher/`). A path
-  under the sibling node crate is written `../src/…`.
-- **`Ndt*` / `ScanMatcher`** are the engine's Rust types; **`Aw*`** C-ABI names belong to the node
-  crate.
+  (`realtime_core/realtime_ndt_scan_matcher/`).
+- **`Ndt*` / `ScanMatcher`** are the engine's Rust types; **`Aw*`** C-ABI names belong to the
+  consuming ROS node crate, not this crate.
 - **TP** = transform probability, **NVTL** = nearest-voxel transformation likelihood.
 - Each chapter ends with a **Source** note listing the in-tree files it distills, so a reader can go
   from the prose to the authoritative code.

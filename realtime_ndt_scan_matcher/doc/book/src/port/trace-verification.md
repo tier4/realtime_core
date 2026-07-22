@@ -11,15 +11,13 @@ state machine emitting only the fields that matter, instrumented on both sides a
 3. Emit an abstract trace of semantic events from both C++ and Rust.
 4. Differentially test the traces; triage divergences; add regression tests.
 
-## The align-service trace ABI
+## Where the trace lives
 
-`node_align_service` carries a `#[repr(C)]` trace buffer (`AwNdtAlignServiceTrace` + typed
-`AwNdtAlignServiceTraceEvent`s) written by `append_trace_event` / `append_search_summary_trace` /
-`append_response_trace`. Events record **semantic** fields only — the gate decision
-(status/success/reliable/valid), the diagnostic level + message kind, the search summary (requested
-/ evaluated particles, best iteration/score, publish counts), and the response payload — never raw
-ROS message bytes. A null trace pointer is a no-op, so production carries no cost; tests install a
-buffer and assert the exact event sequence.
+The concrete align-service trace buffer — a semantic-event record covering the gate decision, the
+diagnostic level, the search summary, and the response payload (never raw ROS message bytes) — is
+part of the consuming ROS node crate, since the align service itself is. This engine crate
+contributes the piece that makes those traces reproducible: the deterministic, seedable TPE sampler
+(`src/tpe.rs`), so a fixed seed yields a fixed candidate sequence for the checks below.
 
 ## Split by determinism
 
@@ -30,4 +28,4 @@ tolerance checks on the align outcome and property/statistical checks on search 
 Verification). Tolerances are established from measured C++ baseline self-variance,
 not invented up front.
 
-> Source: `../src/node_align_service.rs` (the trace events + the deterministic decision functions).
+> Source: `src/tpe.rs` (the deterministic, seedable sampler that makes the search reproducible).

@@ -65,7 +65,7 @@ libm = "0.2"
 # Linear algebra for the engine port. no_std + libm; fixed-size matrices need no alloc.
 nalgebra = { version = "0.33", default-features = false, features = ["libm"] }
 # Data-parallel reduction backend (the `parallel` feature; std-only). Order-preserving
-# `collect_into_vec` keeps the parallel reduce bit-identical to serial.
+# order-preserving `collect` keeps the parallel reduce bit-identical to serial.
 rayon = { version = "1", optional = true }
 # Per-worker CPU pinning for the `parallel` pool (Linux `sched_setaffinity`), enabled at
 # runtime by NDT_PIN_RAYON_WORKERS. Needed so an isolated-core deployment (isolcpus disables

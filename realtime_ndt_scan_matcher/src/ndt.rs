@@ -101,8 +101,8 @@ pub struct AlignWorkspace {
     max_points: usize,
     /// Diagnostics for the current/last align.
     pub diagnostics: AlignDiagnostics,
-    /// Per-point contributions for the parallel backend (reused across frames; order-preserving
-    /// `collect_into_vec` fills it). Only the `parallel` feature touches it — the serial backend
+    /// Per-point contributions for the parallel backend (reused across frames; an order-preserving
+    /// `collect` fills it). Only the `parallel` feature touches it — the serial backend
     /// stays allocation-free.
     #[cfg(feature = "parallel")]
     contribs: Vec<PointContribution>,

@@ -7,8 +7,8 @@ The target-map data structure the align path queries. It ports the C++ `MultiVox
 - **`Leaf`** — one occupied voxel: its centroid and inverse covariance (the Gaussian the score
   evaluates against).
 - **`VoxelGrid`** — one map tile's voxels, built from a point cloud.
-- **`VoxelGridMap`** — the multi-tile map (a `BTreeMap<u64, VoxelGrid>`), plus a flat leaf list and a
-  kd-tree over centroids for neighbor queries.
+- **`VoxelGridMap`** — the multi-tile map (a `BTreeMap<Vec<u8>, VoxelGrid>` keyed by raw byte-string
+  tile id), plus a flat leaf list and a kd-tree over centroids for neighbor queries.
 
 ## Building a grid
 

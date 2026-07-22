@@ -15,13 +15,14 @@ optional [regularization](../concepts/ndt-primer.md) term and assembles the `Der
 
 `compute_derivatives` is the serial backend (one reused neighbor buffer). `compute_derivatives_parallel`
 (under the `parallel` feature) runs the per-point work on rayon's process-global pool via
-`par_iter().zip(...).map_init(...).collect_into_vec(&mut ws.contribs)`, giving each worker its own
+`par_iter().zip(...).map_init(...).collect()` into `ws.contribs`, giving each worker its own
 reusable neighbor buffer. `align` selects it when `params.num_threads > 1`.
 
 ## Bit-for-bit identical
 
-`collect_into_vec` preserves point-index order, so the parallel contributions are folded in the
-**same order** as serial → the two agree **bit-for-bit** (pinned by tests). Parallelism is therefore
+The order-preserving `IndexedParallelIterator::collect` keeps point-index order, so the parallel
+contributions are folded in the **same order** as serial → the two agree **bit-for-bit** (pinned by
+tests). Parallelism is therefore
 a pure throughput option, never a numeric change; the serial backend stays the predictable WCET
 baseline. The worker count is sized separately (see
 [Parallelism and worker threads](../start/features.md#parallelism-and-worker-threads)).

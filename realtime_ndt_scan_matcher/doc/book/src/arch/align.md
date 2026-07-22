@@ -15,7 +15,7 @@ pub fn align(
     params: &NdtParams,
     ws: &mut AlignWorkspace, // reused buffers
     out: &mut AlignResult,   // result slot; Vec fields reused
-)
+) -> Result<AlignDiagnostics, AlignError>
 ```
 
 ## The iteration
@@ -37,8 +37,9 @@ traces ([TP and NVTL](../concepts/scores.md)).
 ## Serial and parallel are bit-identical
 
 `params.num_threads > 1` selects the rayon backend (built under the `parallel` feature) for the
-derivative reduction. Contributions are per-point-local and reduced in **point-index order**
-(`collect_into_vec`), so the parallel result is **bit-for-bit identical** to the serial one. The
+derivative reduction. Contributions are per-point-local and collected in **point-index order**
+(an order-preserving `IndexedParallelIterator::collect`), so the parallel result is **bit-for-bit
+identical** to the serial one. The
 parallel backend is therefore a pure throughput option; the serial backend stays the predictable
 WCET baseline. The reduction runs on rayon's process-global pool, whose worker count is sized
 separately (the `num_threads` param via the node handle, `init_thread_pool`, or `RAYON_NUM_THREADS`)

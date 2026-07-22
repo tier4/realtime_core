@@ -5,10 +5,10 @@ The align-service (initial-pose) search uses a Tree-Structured Parzen Estimator 
 
 ## The propose/evaluate loop
 
-The search ([`node_align_service::run_align_service_search_impl`](../port/trace-verification.md))
-runs: draw a candidate with `get_next_input`, build a pose, `run_align` the engine from it, then feed
-the outcome back with `add_trial`. It keeps the best-scoring particle and reports the per-particle
-initial/result poses, scores, iteration counts, and marker/cloud publish counts.
+The search (driven by the consuming application) runs: draw a candidate with `get_next_input`,
+build a pose, align the engine from it, then feed the outcome back with `add_trial`. It keeps the
+best-scoring particle and reports the per-particle initial/result poses, scores, and iteration
+counts.
 
 ## The sampler
 
@@ -23,13 +23,14 @@ Gaussian KDEs.
 The RNG is a Rust-owned `SplitMix64` + Box-Muller, seeded per request with a fixed seed. This
 deliberately does **not** reproduce libstdc++'s `std::normal_distribution` sample sequence — that
 sequence is implementation-defined and not portable — which is why exact candidate-trace equivalence
-with the C++ search is out of scope (see [Divergences](../port/divergences.md), and *Behavior
-equivalence and verification* in the node crate book). It is deterministic for a fixed seed, so the search is
-reproducible and unit-testable.
+with the C++ search is out of scope (see [Divergences](../port/divergences.md)). It is deterministic
+for a fixed seed, so the search is reproducible and unit-testable.
 
-## C ABI
+## Public API
 
-`AwTpe` is the opaque handle; `AW_TPE_STATUS_*` / `AW_TPE_DIRECTION_*` are the C-ABI status and
-minimize/maximize codes.
+The sampler is plain Rust — no FFI. `TreeStructuredParzenEstimator` (`get_next_input` /
+`add_trial` / `new` / `with_seed`) plus the `Direction { Maximize, Minimize }`, `Error`, and `Trial`
+types. The propose/evaluate search loop that drives it lives in the consuming ROS node, not this
+crate.
 
-> Source: `src/tpe.rs`, `../src/node_align_service.rs`.
+> Source: `src/tpe.rs`.
