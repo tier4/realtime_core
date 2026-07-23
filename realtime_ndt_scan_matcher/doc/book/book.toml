@@ -1,7 +1,7 @@
 [build]
 # Publish the rendered book to the repo-root docs tree (tracked in git; served as static docs).
 # Relative to this book.toml: ../../../ climbs doc/book -> doc -> crate -> realtime_core.
-build-dir = "../../../doc/realtime_ndt_scan_matcher"
+build-dir = "../../../docs/realtime_ndt_scan_matcher"
 
 [book]
 title = "realtime_ndt_scan_matcher — the NDT engine crate"

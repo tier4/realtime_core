@@ -38,7 +38,7 @@ serial WCET baseline. See the crate documentation for the full feature matrix.
 ## Documentation
 
 The `realtime_ndt_scan_matcher` design / real-time / porting book is rendered to
-[`doc/realtime_ndt_scan_matcher/`](doc/realtime_ndt_scan_matcher/) (open `index.html`). Regenerate it
+[`docs/realtime_ndt_scan_matcher/`](docs/realtime_ndt_scan_matcher/) (open `index.html`). Regenerate it
 after editing the sources under `realtime_ndt_scan_matcher/doc/book/src/`:
 
 ```sh
