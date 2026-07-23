@@ -77,9 +77,9 @@ libc = { version = "0.2", optional = true }
 arc-swap = { version = "1", optional = true }
 # Analysis-only, no_std-capable SHA-256 used by `wcet-trace`. It is absent from shipping builds.
 sha2 = { version = "0.10", default-features = false, optional = true }
-# Kernel-grade locks for the `mt` (multi-core no_std) build. Unpublished on crates.io -> pinned git
-# rev (recorded in Cargo.lock); default-features off so the backend choice stays with the final binary.
-awkernel_sync = { git = "https://github.com/tier4/awkernel_sync.git", rev = "d9ea774eb55fc62a392981dd01945e92fec0f134", default-features = false, optional = true }
+# Kernel-grade locks for the `mt` (multi-core no_std) build. default-features off so the backend
+# choice stays with the final binary (x86/aarch64/rv64/rv32 bare-metal, or awkernel_sync/std on host).
+awkernel_sync = { version = "0.1", default-features = false, optional = true }
 
 # Example-only (examples/tokio_ndt.rs): the async reference Host impl. std; not linked into the
 # no_std rlib (dev-deps are excluded from --lib builds).
