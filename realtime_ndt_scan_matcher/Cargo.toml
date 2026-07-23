@@ -2,6 +2,9 @@
 name = "realtime_ndt_scan_matcher"
 version = "0.1.0"
 edition = "2024"
+authors = ["Yuuki Takano", "TIER IV, Inc."]
+description = "Pure-Rust, ROS-free, no_std-capable core of the Autoware NDT (Normal Distributions Transform) localization engine."
+license = "MIT OR Apache-2.0"
 
 [lib]
 # Pure-Rust engine library: consumed by the ROS node crate (`autoware_ndt_scan_matcher_rs`) as a

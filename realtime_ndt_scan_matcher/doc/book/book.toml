@@ -5,7 +5,7 @@ build-dir = "../../../doc/realtime_ndt_scan_matcher"
 
 [book]
 title = "realtime_ndt_scan_matcher — the NDT engine crate"
-authors = ["Autoware Foundation"]
+authors = ["Yuuki Takano", "TIER IV, Inc."]
 language = "en"
 src = "src"
 description = "Design, real-time, and porting documentation for the ROS-free, no_std-capable NDT engine crate (realtime_ndt_scan_matcher)."
