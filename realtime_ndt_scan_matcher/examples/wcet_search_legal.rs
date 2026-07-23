@@ -1,4 +1,4 @@
-//! Deployment-tier worst-input search at **production parameters** (`plan/ndt_wcet.md` follow-up).
+//! Deployment-tier worst-input search at **production parameters**.
 //!
 //! The engine-level search (`wcet_search.rs`) pins the iteration cap via `trans_epsilon = 1e-10`;
 //! this search freezes the params to Autoware's shipped values (eps = 0.01, step 0.1,
@@ -309,7 +309,7 @@ fn verify_legal(fx: &Fixture) -> Result<(), String> {
 type Fitness = (u64, u64, u64);
 
 /// Fitness mode (`WCET_SEARCH_FITNESS`): `osc` (default) maximizes the lexicographic
-/// `(iterations, Σneighbors, kd_nodes)` vector; `maxk` (plan/paper_fix.md B3) maximizes
+/// `(iterations, Σneighbors, kd_nodes)` vector; `maxk` maximizes
 /// `(max per-point K, iterations, Σneighbors)` to hunt a legal witness above the K = 8
 /// voxel-center heuristic (the provable ceiling is 27).
 fn fitness_is_maxk() -> bool {

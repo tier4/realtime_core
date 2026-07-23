@@ -1,4 +1,4 @@
-//! Layer-1 WCET bound as a machine-checked property (`plan/ndt_wcet.md`).
+//! WCET bound as a machine-checked property.
 //!
 //! The engine's frame cost decomposes as `T ≤ N_iter × Σ_p (T_search + K·T_kernel) + …`; the
 //! `wcet-count` counters measure exactly those data-dependent quantities. This suite drives
@@ -50,7 +50,7 @@ fn make_map(clusters: usize, spacing: f32) -> (VoxelGridMap, Vec<[f32; 3]>) {
 proptest! {
     #![proptest_config(ProptestConfig { cases: 64, ..ProptestConfig::default() })]
 
-    /// Counters never exceed the analytic Layer-1 bound, for randomized inputs.
+    /// Counters never exceed the analytic bound, for randomized inputs.
     #[test]
     fn counters_respect_analytic_bound(
         clusters in 1_usize..24,

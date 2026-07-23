@@ -99,7 +99,7 @@ pub mod capture;
 // Frozen WCET benchmark fixtures (capture-once, replay-everywhere); std-only file IO.
 #[cfg(feature = "std")]
 pub mod fixture;
-// Deterministic algorithmic-cost counters for the WCET analysis (plan/ndt_wcet.md); opt-in.
+// Deterministic algorithmic-cost counters for the WCET analysis; opt-in.
 #[cfg(feature = "wcet-count")]
 pub mod wcet;
 

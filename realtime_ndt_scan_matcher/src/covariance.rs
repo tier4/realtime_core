@@ -25,8 +25,8 @@ fn to_row_major(m: &Matrix2<f64>) -> [f64; 4] {
 ///
 /// A non-positive or non-finite `temperature` falls back to **uniform weights** (`1/n`) instead of
 /// dividing by zero — the C++ (`estimate_covariance.cpp` `calc_weight_vec`) divides unguarded and
-/// would poison the weights with NaN/Inf. Documented divergence (degenerate config only); see
-/// `doc/book/src/port/divergences.md`. Valid temperatures are bit-identical to C++.
+/// would poison the weights with NaN/Inf. Documented divergence (degenerate config only). Valid
+/// temperatures are bit-identical to C++.
 pub fn calc_weight_vec(scores: &[f64], temperature: f64, out: &mut [f64]) {
     if !(temperature > 0.0 && temperature.is_finite()) {
         let n = scores.len().min(out.len());

@@ -12,7 +12,7 @@
 //! `WCET_JSON=path` (fixture mode) additionally writes a machine-readable JSON — per fixture:
 //! sizes, `iteration_num`, timing samples (µs), and (under `wcet-count`) the cost counters —
 //! consumed by `bench/wcet_report.py` for the unit-cost regression.
-//! Record baselines in `porting_notes/ndt_wcet_audit.md`. (Single core, warm cache — a relative
+//! (Single core, warm cache — a relative
 //! regression watch, not a hardware WCET proof.)
 
 #![allow(

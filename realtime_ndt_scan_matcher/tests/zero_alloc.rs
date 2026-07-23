@@ -88,8 +88,7 @@ fn transform_cloud(source: &[[f32; 3]], p: &Vector6<f64>) -> Vec<[f32; 3]> {
 
 // Both measurements run sequentially in ONE test (the counting flag is process-global; see
 // count_allocs). compute_derivatives must be allocation-free after warmup; align's per-frame
-// allocation must be a small O(1) constant (SVD-internal), recorded in
-// porting_notes/ndt_wcet_audit.md.
+// allocation must be a small O(1) constant (SVD-internal).
 #[test]
 fn engine_allocations_after_warmup() {
     // --- compute_derivatives: 0 allocations after warmup ---
@@ -201,7 +200,7 @@ fn engine_allocations_after_warmup() {
     // The hot path is zero-alloc after warmup: all buffers (result Vecs, trans_cloud via
     // transform_cloud_f32, neighbor_idx bounded by MAX_NEIGHBORS) are pre-reserved + reused, and the
     // fixed-size 6x6 SVD is stack-only. (The earlier 1 alloc/frame was a trans_cloud over-reserve,
-    // now fixed — see porting_notes/ndt_wcet_audit.md.)
+    // now fixed.)
     assert_eq!(
         allocs,
         0,
@@ -214,7 +213,7 @@ fn engine_allocations_after_warmup() {
     // --- pre-reserved workspace: zero allocations INCLUDING the first frame (WCET "hard zero") ---
     // A growth event is a WCET spike, so the amortized warmup above is not enough for a bound:
     // AlignWorkspace::with_capacity + a pre-reserved result must make even the first align
-    // allocation-free (plan/ndt_wcet.md, M2).
+    // allocation-free.
     let mut ws2 = AlignWorkspace::try_with_capacity(source.len()).expect("reserve workspace");
     let iter_cap = usize::try_from(params.max_iterations).unwrap();
     let mut out2 = AlignResult::try_with_capacity(iter_cap).expect("reserve result");

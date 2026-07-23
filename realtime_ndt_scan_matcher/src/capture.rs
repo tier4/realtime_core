@@ -1,5 +1,4 @@
-//! Real-drive input capture — the sidecar format behind the node crate's `NDT_CAPTURE_DIR` hook
-//! (`plan/ndt_wcet.md` operational-envelope follow-up).
+//! Real-drive input capture — the sidecar format behind the node crate's `NDT_CAPTURE_DIR` hook.
 //!
 //! Unlike a [`crate::fixture`] file (one self-contained align input), a capture directory records
 //! a whole drive against a **dynamically tiled** map without duplicating the map per frame:

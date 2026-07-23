@@ -1,4 +1,4 @@
-//! Frozen WCET benchmark fixtures — capture-once, replay-everywhere (`plan/ndt_wcet.md`).
+//! Frozen WCET benchmark fixtures — capture-once, replay-everywhere.
 //!
 //! A fixture is one complete align input (target map tiles + source cloud + initial guess +
 //! params) in a trivial little-endian binary layout, so the **same bytes** feed the Rust harness

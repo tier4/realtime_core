@@ -1,4 +1,4 @@
-//! Counter-guided worst-input search (`plan/ndt_wcet.md`, M3 / Layer 2).
+//! Counter-guided worst-input search.
 //!
 //! Seeded hill-climb over a parameterized input generator, with the **deterministic cost
 //! counters** as fitness — platform-independent, so a worst input found here is a worst input
@@ -20,7 +20,7 @@
 //! `WCET_SEARCH_POP` (default 6), `WCET_SEARCH_TOPK` (default 2), `WCET_SEARCH_SEED`.
 //! Deterministic for a fixed seed. Emits `search_00.ndtfix`, `search_01.ndtfix`, ….
 //!
-//! Ablation controls (plan/paper_fix.md B4; the defaults leave the original behavior
+//! Ablation controls (the defaults leave the original behavior
 //! byte-identical):
 //! - `WCET_SEARCH_MODE=hill|random` — `random` evaluates the same budget (pop + gens×pop)
 //!   of freshly sampled genomes (budget-matched baseline).

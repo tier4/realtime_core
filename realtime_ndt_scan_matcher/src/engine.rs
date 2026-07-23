@@ -1003,7 +1003,7 @@ pub fn run_align(
             converged_param_nearest_voxel_transformation_likelihood: conv
                 .converged_param_nearest_voxel_transformation_likelihood,
         });
-    // Rust-only degenerate guard (documented divergence, doc/book/src/port/divergences.md): a
+    // Rust-only degenerate guard (documented divergence): a
     // non-finite result pose is forced to non-converged so no consumer publishes NaN/Inf downstream
     // (the node gates every pose/TF publish on `is_converged`). C++ has no such gate; on the valid
     // domain the align pose is always finite, so this branch never fires there.

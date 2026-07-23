@@ -149,8 +149,8 @@ impl KdTree {
     pub(crate) const MAX_STACK: usize = 64;
 
     /// Iterative radius search — an explicit fixed-size stack instead of recursion, so the
-    /// RT-critical path uses O(1) stack independent of tree size (WCET audit item; see
-    /// `porting_notes/ndt_wcet_audit.md`). Visits nodes in **exactly** the recursive near-then-far
+    /// RT-critical path uses O(1) stack independent of tree size. Visits nodes in **exactly** the
+    /// recursive near-then-far
     /// order (far children are deferred LIFO), so the neighbor order — and thus every downstream
     /// float summation — is bit-identical to the recursive implementation (oracle-tested below).
     #[allow(

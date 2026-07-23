@@ -434,7 +434,7 @@ fn finalize(
 /// transformed by the current pose (neighbor search + `x_trans`); `p` the 6-vector of that pose;
 /// `cfg` the neighbor radius / Gaussian constants / optional regularization (fixed across the loop).
 ///
-/// WCET contract (RT-critical; the predictable baseline; see `porting_notes/ndt_wcet_audit.md`):
+/// WCET contract (RT-critical; the predictable baseline):
 /// `O(P · K)` where `P` = source points (caller-bounded by downsampling) and `K` = neighbors/point ≤
 /// `MAX_NEIGHBORS` (the `radius_search` cap); reuses `ws.neighbor_idx` → **no allocation** (measured);
 /// no panic/block/logging; per-point math is fixed-size `O(1)`. The map is read-only.
@@ -992,7 +992,7 @@ fn validate_align_inputs(
 /// the original cloud. Fills `out` (its `Vec`s are reused). The per-iteration cloud transform is f32
 /// (C++ `Matrix4f` pipeline).
 ///
-/// WCET contract (RT-critical; serial; see `porting_notes/ndt_wcet_audit.md`):
+/// WCET contract (RT-critical; serial):
 /// - Outer loop runs at most `params.max_iterations` times (static cap).
 /// - Each iteration does one `compute_derivatives` pass (`O(P · K)`: `P` = source points,
 ///   `K` = neighbors/point) + one 6×6 SVD solve + one f32 cloud transform (`O(P)`).
@@ -1097,7 +1097,7 @@ pub fn align(
     // :266) and records the guess matrix itself; only SUBSEQUENT passes rebuild the transform
     // from the Euler 6-vector. Rebuilding here instead is not bit-equal for rotated guesses
     // (`R_rebuilt(euler(R)) != R` in f32, amplified by the map's coordinate magnitude) and was
-    // the root cause of the real-map iteration divergence (PORT-QUIRK; see the porting notes).
+    // the root cause of the real-map iteration divergence.
     let mut d = {
         let mut trans = core::mem::take(&mut ws.trans_cloud);
         transform_cloud_by_matrix(guess, source, &mut trans);
@@ -1135,8 +1135,8 @@ pub fn align(
         // C++ parity: computeStepLengthMT applies `std::min(a_t, step_max)` THEN
         // `std::max(a_t, step_min)` (multigrid_ndt_omp_impl.hpp:953-955) — min-then-max, never
         // panicking. `f64::clamp` would panic when a misconfigured `trans_epsilon / 2 > step_size`
-        // (or a NaN bound) makes min > max; min/max yields `step_min` there, exactly like C++
-        // (PORT-QUIRK, resolved: see doc/book/src/port/divergences.md). Rust `f64::min`/`f64::max`
+        // (or a NaN bound) makes min > max; min/max yields `step_min` there, exactly like C++.
+        // Rust `f64::min`/`f64::max`
         // also match std::min/std::max on single-NaN operands (both return the non-NaN side).
         let a_t = delta_norm.min(params.step_size).max(step_min);
 
@@ -1268,7 +1268,7 @@ mod tests {
     }
 
     // Headline oracle: the assembled gradient equals the central finite difference of the full
-    // multi-point score; the full 6x6 Hessian equals the second FD. (Before PR #1217 the `h_ang`
+    // multi-point score; the full 6x6 Hessian equals the second FD. (Previously the `h_ang`
     // d1 sign bug made the angle-angle block non-exact, so it was excluded from the FD check; with
     // the sign fixed the whole Hessian matches FD.) Also asserts Hessian symmetry.
     #[test]
@@ -1319,7 +1319,7 @@ mod tests {
             }
         }
 
-        // full Hessian vs second central FD (exact since the PR #1217 h_ang d1 sign fix).
+        // full Hessian vs second central FD (exact since the h_ang d1 sign fix).
         let h = 1e-4;
         for i in 0..6 {
             for j in 0..6 {

@@ -480,7 +480,7 @@ impl VoxelGridMap {
     }
 
     /// [`Self::radius_search`] that also returns the number of kd-tree nodes visited — the
-    /// deterministic traversal-cost counter for the WCET analysis (`plan/ndt_wcet.md`).
+    /// deterministic traversal-cost counter for the WCET analysis.
     #[cfg(feature = "wcet-count")]
     /// # Errors
     /// Returns an explicit error when allocation, arithmetic, numeric input, or a declared runtime bound fails.

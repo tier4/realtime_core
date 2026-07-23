@@ -30,7 +30,7 @@ pub struct GaussConstants {
 /// are clamped into the open valid domain before the C++-mirrored math runs, so `d1`/`d2`/`d3` are
 /// always finite (they feed every per-point score `exp`). The C++ (`computeTransformation` lines
 /// 229-233) is unguarded there: `resolution == 0` → `inf`, `outlier_ratio ∈ {0, 1}` → `log(0)`/NaN.
-/// Documented divergence — see `doc/book/src/port/divergences.md`; valid configs are untouched.
+/// Documented divergence; valid configs are untouched.
 #[must_use]
 pub fn gauss_constants(outlier_ratio: f64, resolution: f64) -> GaussConstants {
     // Branch-only degenerate-config clamps (no effect on the valid domain; RT-safe).
@@ -105,7 +105,7 @@ pub fn matrix_to_euler(m: &Matrix4<f64>) -> Vector6<f64> {
     // R[0][1] = -cos(b)sin(c); R[0][0] = cos(b)cos(c).
     // Guard: FP error can push |m02| of a near-gimbal rotation just past 1, where asin returns NaN
     // (C++ uses the atan2-based Eigen eulerAngles, which cannot NaN). Clamping to the asin domain
-    // only fires there — a documented divergence (doc/book/src/port/divergences.md).
+    // only fires there — a documented divergence.
     let pitch = libm::asin(m[(0, 2)].clamp(-1.0, 1.0));
     let roll = libm::atan2(-m[(1, 2)], m[(2, 2)]);
     let yaw = libm::atan2(-m[(0, 1)], m[(0, 0)]);
@@ -143,8 +143,8 @@ pub fn se3_matrix_f32(p: &Vector6<f64>) -> Matrix4<f32> {
     // disagrees with the pure-Rust `libm` crate on ~1.25 % of arguments (both ≤1-ULP-correct,
     // differently rounded; measured on this toolchain). We deliberately KEEP `libm` — build/ISA
     // determinism of the engine outweighs the last ULP of host C++ parity (measured impact:
-    // 1 extra ±1-iteration flip in 22,416 real frames; see the porting notes' divergence
-    // finding). The wcet-count counters confirm the compared per-frame work counts.
+    // 1 extra ±1-iteration flip in 22,416 real frames). The wcet-count counters confirm the
+    // compared per-frame work counts.
     let (sx, cx) = (libm::sinf(p[3] as f32), libm::cosf(p[3] as f32));
     let (sy, cy) = (libm::sinf(p[4] as f32), libm::cosf(p[4] as f32));
     let (sz, cz) = (libm::sinf(p[5] as f32), libm::cosf(p[5] as f32));
@@ -185,8 +185,7 @@ pub fn transform_cloud_by_matrix(m: &Matrix4<f32>, source: &[[f32; 3]], out: &mu
     // `x·c0 + (y·c1 + (z·c2 + t))` — RIGHT-associated with the translation innermost
     // (pcl/common/impl/transforms.hpp:124-129). A left-associated `r·v + t` rounds differently
     // for ROTATED poses (translation-only poses are exact either way, which is why the
-    // synthetic differential suites never exposed the difference; see the porting notes'
-    // divergence finding). Keep this association exactly.
+    // synthetic differential suites never exposed the difference). Keep this association exactly.
     for &[sx, sy, sz] in source {
         let v = [
             sx * m[(0, 0)] + (sy * m[(0, 1)] + (sz * m[(0, 2)] + m[(0, 3)])),

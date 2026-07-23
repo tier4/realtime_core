@@ -1,4 +1,4 @@
-//! Deterministic algorithmic-cost counters for the WCET analysis (`plan/ndt_wcet.md`, Layer 2).
+//! Deterministic algorithmic-cost counters for the WCET analysis.
 //!
 //! The engine's frame time decomposes as
 //! `T ≤ N_iter × [Σ_p (T_search(p) + K(p)·T_kernel) + T_solve]`, so these counters capture the only

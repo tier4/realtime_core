@@ -1,4 +1,4 @@
-//! Hand-built adversarial WCET fixtures (`plan/ndt_wcet.md`, M2) — near-worst inputs by
+//! Hand-built adversarial WCET fixtures — near-worst inputs by
 //! construction, written in the frozen fixture format both the Rust harness and the C++ replay
 //! consume:
 //!
@@ -269,7 +269,7 @@ fn subnormal() -> Fixture {
     subnormal_shell(1.99)
 }
 
-/// A/B control for `subnormal` (C5, plan/paper_fix2.md): the identical geometry with the source
+/// A/B control for `subnormal`: the identical geometry with the source
 /// on a `shell`-metre ring. At 1.99 m the kernel `exp` lands in the f64 subnormal band; at
 /// 1.69 m every result leaves that band, all else equal — the controlled null test that
 /// isolates whether subnormal operands (vs. the per-point search overhead) drive the timing.
@@ -380,7 +380,7 @@ fn main() {
         ("cache_hostile", cache_hostile()),
         ("subnormal", subnormal()),
         // A/B control for `subnormal`: identical geometry, source shell out of the f64
-        // subnormal band (1.69 m vs 1.99 m); the C5 null test (plan/paper_fix2.md).
+        // subnormal band (1.69 m vs 1.99 m).
         ("subnormal_ctrl", subnormal_shell(1.69)),
         ("legal_worst", legal_worst()),
     ];

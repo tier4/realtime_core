@@ -400,7 +400,7 @@ mod tests {
 
         // Full 6x6 Hessian vs second central FD of S(p). The translation rows (0-2) never depended
         // on the angle second-derivative `point_hessian` blocks. The angle-angle block (3..6)
-        // depends on the `h_ang` table: before PR #1217 that table's row 6 (`d1`) had the wrong
+        // depends on the `h_ang` table: previously that table's row 6 (`d1`) had the wrong
         // sign (+sy instead of -sy), so the analytic Hessian was not the true d^2T/dp^2 and this
         // block could not be FD-validated. With the sign fixed, `h_ang` equals the exact second
         // derivative, so the WHOLE Hessian now matches the finite difference — this loop pins the
