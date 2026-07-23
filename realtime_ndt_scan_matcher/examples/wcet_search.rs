@@ -16,7 +16,8 @@
 //! freedom).
 //!
 //! Usage: `cargo run --release --features wcet-count --example wcet_search [OUT_DIR]`
-//! (default `OUT_DIR`: `../../bench/fixtures`). Env: `WCET_SEARCH_GENS` (default 20),
+//! (default `OUT_DIR`: the crate's own `bench/fixtures/`, via `CARGO_MANIFEST_DIR`).
+//! Env: `WCET_SEARCH_GENS` (default 20),
 //! `WCET_SEARCH_POP` (default 6), `WCET_SEARCH_TOPK` (default 2), `WCET_SEARCH_SEED`.
 //! Deterministic for a fixed seed. Emits `search_00.ndtfix`, `search_01.ndtfix`, ….
 //!
@@ -267,10 +268,10 @@ fn evaluate(fx: &Fixture) -> (Fitness, u128) {
         map.add_target(tile, &(id as u64).to_be_bytes());
     }
     map.try_create_kdtree(418_000).expect("build kd-tree");
-    let mut ws = AlignWorkspace::with_capacity(fx.source.len());
-    let mut out = AlignResult::default();
+    let mut ws = AlignWorkspace::try_with_capacity(fx.source.len()).expect("reserve workspace");
+    let mut out = AlignResult::try_with_capacity(30).expect("reserve result");
     let t0 = std::time::Instant::now();
-    align(&map, &fx.source, &fx.guess, &fx.params, &mut ws, &mut out);
+    align(&map, &fx.source, &fx.guess, &fx.params, &mut ws, &mut out).expect("align");
     let ns = t0.elapsed().as_nanos();
     let c = out.counters;
     (
@@ -354,7 +355,7 @@ fn env_usize(name: &str, default: usize) -> usize {
 
 fn main() {
     let out_dir: PathBuf = std::env::args().nth(1).map_or_else(
-        || Path::new("../../bench/fixtures").to_path_buf(),
+        || Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/bench/fixtures")).to_path_buf(),
         Into::into,
     );
     std::fs::create_dir_all(&out_dir).expect("create fixture dir");

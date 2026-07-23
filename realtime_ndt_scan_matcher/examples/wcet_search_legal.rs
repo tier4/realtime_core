@@ -322,9 +322,9 @@ fn evaluate(fx: &Fixture) -> Fitness {
         map.add_target(tile, &(id as u64).to_be_bytes());
     }
     map.try_create_kdtree(418_000).expect("build kd-tree");
-    let mut ws = AlignWorkspace::with_capacity(fx.source.len());
-    let mut out = AlignResult::default();
-    align(&map, &fx.source, &fx.guess, &fx.params, &mut ws, &mut out);
+    let mut ws = AlignWorkspace::try_with_capacity(fx.source.len()).expect("reserve workspace");
+    let mut out = AlignResult::try_with_capacity(30).expect("reserve result");
+    align(&map, &fx.source, &fx.guess, &fx.params, &mut ws, &mut out).expect("align");
     let c = out.counters;
     if fitness_is_maxk() {
         (
@@ -351,7 +351,7 @@ fn env_usize(name: &str, default: usize) -> usize {
 
 fn main() {
     let out_dir: PathBuf = std::env::args().nth(1).map_or_else(
-        || Path::new("../../bench/fixtures").to_path_buf(),
+        || Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/bench/fixtures")).to_path_buf(),
         Into::into,
     );
     std::fs::create_dir_all(&out_dir).expect("create fixture dir");

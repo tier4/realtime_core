@@ -14,7 +14,7 @@
 //!   `exp` lands in the f64 subnormal range (exponent ≈ −710..−745) — the FP-assist timing hazard.
 //!
 //! Usage: `cargo run --release --example wcet_fixtures [OUT_DIR]`
-//! (default `OUT_DIR`: `../../bench/fixtures` — the package-level `bench/` — relative to the engine crate).
+//! (default `OUT_DIR`: the crate's own `bench/fixtures/`, via `CARGO_MANIFEST_DIR`).
 //!
 //! Note: map voxel `leaf_size == params.resolution` in every fixture so the inputs stay
 //! representable in the C++ engine (pcl couples the two).
@@ -361,7 +361,13 @@ fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
     if args.first().map(String::as_str) == Some("--psweep") {
         let out_dir: PathBuf = args.get(1).map_or_else(
-            || Path::new("../../bench/fixtures/psweep").to_path_buf(),
+            || {
+                Path::new(concat!(
+                    env!("CARGO_MANIFEST_DIR"),
+                    "/bench/fixtures/psweep"
+                ))
+                .to_path_buf()
+            },
             Into::into,
         );
         run_psweep(&out_dir);
@@ -369,7 +375,7 @@ fn main() {
     }
 
     let out_dir: PathBuf = args.first().map_or_else(
-        || Path::new("../../bench/fixtures").to_path_buf(),
+        || Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/bench/fixtures")).to_path_buf(),
         Into::into,
     );
     std::fs::create_dir_all(&out_dir).expect("create fixture dir");
