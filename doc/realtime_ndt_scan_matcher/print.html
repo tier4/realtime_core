@@ -1,0 +1,1275 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>realtime_ndt_scan_matcher — the NDT engine crate</title>
+        <meta name="robots" content="noindex">
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Design, real-time, and porting documentation for the ROS-free, no_std-capable NDT engine crate (realtime_ndt_scan_matcher).">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="favicon-8114d1fc.png">
+        <link rel="stylesheet" href="css/variables-8adf115d.css">
+        <link rel="stylesheet" href="css/general-e96d0476.css">
+        <link rel="stylesheet" href="css/chrome-d279d366.css">
+        <link rel="stylesheet" href="css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "searchindex-4fb7122e.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc-427fc75c.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">realtime_ndt_scan_matcher — the NDT engine crate</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/autowarefoundation/autoware_core" title="Git repository" aria-label="Git repository">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
+<p>This book documents <strong><code>realtime_ndt_scan_matcher</code></strong> — the ROS-free, <code>no_std</code>-capable <strong>NDT
+engine crate</strong> at the heart of the Autoware NDT scan matcher’s Rust port. It is written for the
+people who build on, review, and maintain the <em>algorithm</em>: the engine, the align hot path, the
+covariance/pose search, and the real-time / <code>no_std</code> guarantees.</p>
+<p>This crate lives at <code>realtime_core/realtime_ndt_scan_matcher/</code> and holds <strong>only</strong> the portable
+algorithmic core — no <code>extern "C"</code>, no <code>rclcpp</code>, no ROS message types. Every path in this book is
+relative to that crate root. The C ABI and the ROS 2 node — the FFI boundary, the <code>Host</code> vtable, the
+ROS node shell, and the C++→Rust symbol map — live in a separate ROS node crate that consumes this
+engine as a dependency; that integration is out of scope here.</p>
+<h2 id="why-this-crate-exists"><a class="header" href="#why-this-crate-exists">Why this crate exists</a></h2>
+<ul>
+<li><strong>Panic-free, WCET-bounded real time.</strong> The align hot path is allocation-free after warmup,
+has a documented worst-case execution-time contract, and cannot panic.</li>
+<li><strong>A <code>no_std</code> / kernel target.</strong> The same engine builds without <code>std</code>
+(<code>--no-default-features</code>), so it can run under a bare-metal kernel — the portability goal that
+shaped the whole design. The <code>mt</code> feature adds a multi-core, <code>Sync</code> engine.</li>
+<li><strong>Reusability.</strong> Because the engine is ROS-free and pure Rust, it can be consumed directly by
+Rust callers (see the <code>examples/</code> and <code>tests/</code>) as well as by the ROS node over FFI.</li>
+</ul>
+<h2 id="what-is-and-isnt-in-scope"><a class="header" href="#what-is-and-isnt-in-scope">What is and isn’t in scope</a></h2>
+<p><strong>In scope (this crate):</strong> the NDT engine and voxel-grid map, the align kernel, scores
+(transform probability and nearest-voxel likelihood), covariance estimation, the align-service
+pose search (TPE), pose buffers, the convergence verdict, and the <code>Host</code> port traits that let a
+caller supply the map, clock, and output sink.</p>
+<p><strong>Out of scope (the node crate / <code>rclcpp</code>):</strong> the C ABI, ROS node construction,
+publishers/subscribers/services/timers, parameter declaration, TF lookup, the map-loader service
+call, and message publication. This crate never links <code>rclcpp</code> and never touches ROS types; a
+caller drives it through the <code>Host</code> traits.</p>
+<h2 id="the-shape-of-the-engine"><a class="header" href="#the-shape-of-the-engine">The shape of the engine</a></h2>
+<pre class="mermaid">flowchart TB
+    subgraph caller["Any caller (ROS node, kernel, test)"]
+        host["Host impl\n(MapSource · OutputSink · Clock)"]
+    end
+    subgraph engine["realtime_ndt_scan_matcher (this crate)"]
+        matcher["ScanMatcher (over the Host ports)"]
+        ndtengine["NdtEngine\n(&amp;self-only, lock-free map)"]
+        align["ndt::align (RT-critical kernel)"]
+        matcher --&gt; ndtengine --&gt; align
+    end
+    caller -- "sensor points, initial pose" --&gt; matcher
+    matcher -- "map load, publish, log (via ports)" --&gt; host
+</pre>
+
+<p>Read <a href="#how-to-read-this-book">How to read this book</a> next — it routes each kind of reader to the chapters
+that matter most.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="how-to-read-this-book"><a class="header" href="#how-to-read-this-book">How to read this book</a></h1>
+<p>This book covers the engine crate <code>realtime_ndt_scan_matcher</code> on its own. The FFI boundary, the
+<code>Host</code> C vtable, the ROS 2 node, and the C++→Rust symbol map belong to a separate ROS node crate
+that consumes this engine, and are out of scope here.</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>You are…</th><th>Start with</th><th>Then</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>A Rust crate user</strong></td><td><a href="#using-the-engine-crate">Getting Started</a> (using the crate, feature flags)</td><td><a href="#the-ndt-engine">The NDT engine</a>, <a href="#the-align-hot-path">The align hot path</a>, and the generated rustdoc</td></tr>
+<tr><td><strong>A maintainer / contributor</strong></td><td><a href="#the-ndt-engine">Architecture</a> (engine → align → covariance)</td><td><a href="#numeric-parity">Numeric parity</a>, <a href="#divergences-from-upstream">Divergences from upstream</a></td></tr>
+<tr><td><strong>An RT / <code>no_std</code> (kernel) engineer</strong></td><td><a href="#the-wcet-contract">Real-Time and no_std</a> (WCET, zero-alloc, <code>mt</code>, panic-free)</td><td><a href="#concurrency-and-interior-mutability">Concurrency and interior mutability</a></td></tr>
+<tr><td><strong>An upstream / PR reviewer</strong></td><td><a href="#numeric-parity">Numeric parity</a> and <a href="#divergences-from-upstream">Divergences</a></td><td><a href="#differential-testing">Differential testing</a>, <a href="#trace-based-state-machine-verification">Trace verification</a></td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="conventions"><a class="header" href="#conventions">Conventions</a></h2>
+<ul>
+<li><strong>Code that is meant to compile</strong> is shown as tested <code>rust</code> doctests copied from the crate’s
+rustdoc. <strong>Illustrative snippets and excerpts</strong> use <code>rust,ignore</code> or <code>text</code> and are not compiled.</li>
+<li><strong>Paths</strong> like <code>src/engine.rs</code> are relative to <strong>this crate’s root</strong>
+(<code>realtime_core/realtime_ndt_scan_matcher/</code>).</li>
+<li><strong><code>Ndt*</code> / <code>ScanMatcher</code></strong> are the engine’s Rust types; <strong><code>Aw*</code></strong> C-ABI names belong to the
+consuming ROS node crate, not this crate.</li>
+<li><strong>TP</strong> = transform probability, <strong>NVTL</strong> = nearest-voxel transformation likelihood.</li>
+<li>Each chapter ends with a <strong>Source</strong> note listing the in-tree files it distills, so a reader can go
+from the prose to the authoritative code.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="ndt-scan-matching-primer"><a class="header" href="#ndt-scan-matching-primer">NDT scan matching primer</a></h1>
+<p>Enough Normal Distributions Transform (NDT) background to read the rest of the book. NDT estimates a
+vehicle’s pose by aligning a live LiDAR scan to a prebuilt point-cloud map.</p>
+<h2 id="the-registration-problem"><a class="header" href="#the-registration-problem">The registration problem</a></h2>
+<p>Given a <strong>target</strong> map (points in the <code>map</code> frame) and a <strong>source</strong> scan (points in <code>base_link</code>),
+find the rigid transform <code>T(p)</code> — a 6-DoF pose <code>p = [x, y, z, roll, pitch, yaw]</code> — that best places
+the source onto the map. NDT differs from ICP in how it represents the target: instead of matching
+point-to-point, it <strong>voxelizes the target into per-cell normal distributions</strong> and scores the source
+against those smooth Gaussians. That makes the objective differentiable and cheap to evaluate, so a
+few Newton steps converge.</p>
+<h2 id="the-voxel-grid"><a class="header" href="#the-voxel-grid">The voxel grid</a></h2>
+<p>The target is bucketed into a regular grid of <code>resolution</code>-sized voxels. Each voxel with at least
+<code>min_points</code> points is summarized by a <strong>mean</strong> and an <strong>inverse covariance</strong> (its Gaussian). The
+covariance is conditioned by inflating its smallest eigenvalues (<code>eig_mult</code>) so thin/planar cells
+stay invertible. This is the C++ <code>MultiVoxelGridCovariance</code>; in Rust it is
+<a href="#voxel-grid-and-kd-tree"><code>voxel_grid::VoxelGridMap</code></a>, queried by a kd-tree over voxel centroids.</p>
+<h2 id="the-score-gradient-and-hessian"><a class="header" href="#the-score-gradient-and-hessian">The score, gradient, and Hessian</a></h2>
+<p>For a candidate pose <code>p</code>, each source point is transformed by <code>T(p)</code>, its nearest voxel(s) are found
+by radius search, and the point contributes a Gaussian response of its offset from the voxel mean.
+Summed over the cloud this is the <strong>NDT score</strong>; its first and second derivatives w.r.t. <code>p</code> give the
+<strong>gradient</strong> and <strong>Hessian</strong> that drive a Newton step. The mixture uses two Gauss constants derived
+from <code>outlier_ratio</code> and <code>resolution</code> (a robustifying outlier model). The derivative kernels live in
+<a href="#serial-and-parallel-derivatives">Serial and parallel derivatives</a>; the optimization loop (transform →
+derivatives → 6×6 SVD solve → step) is <a href="#the-align-hot-path">The align hot path</a>.</p>
+<p>The two scores NDT reports from a converged pose — transform probability and nearest-voxel
+transformation likelihood — are covered in <a href="#scores-tp-and-nvtl">Scores: TP and NVTL</a>.</p>
+<blockquote>
+<p>Source: <code>src/voxel_grid.rs</code>, <code>src/derivatives.rs</code>, <code>src/ndt.rs</code>, <code>src/transform.rs</code>
+(<code>gauss_constants</code>).</p>
+</blockquote>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="scores-tp-and-nvtl"><a class="header" href="#scores-tp-and-nvtl">Scores: TP and NVTL</a></h1>
+<p>NDT reports two quality scores from a converged pose; both are published, and one of them gates the
+convergence decision.</p>
+<h2 id="transform-probability-tp"><a class="header" href="#transform-probability-tp">Transform Probability (TP)</a></h2>
+<p>TP is the NDT score accumulated over the whole cloud, normalized by the point count — the average
+per-point Gaussian response at the final pose (<code>red.score / source_len</code> in <code>ndt.rs</code>’s <code>finalize</code>,
+exposed as <code>AlignResult::transform_probability</code>). Higher is better; it reflects how well the source
+sits in the map’s distributions overall.</p>
+<h2 id="nearest-voxel-transformation-likelihood-nvtl"><a class="header" href="#nearest-voxel-transformation-likelihood-nvtl">Nearest-Voxel Transformation Likelihood (NVTL)</a></h2>
+<p>NVTL scores each transformed point against only its <strong>nearest</strong> voxel and averages over the points
+that found one (<code>nearest_voxel_score / found</code>). It is more robust than TP on sparse or partially
+observed maps, so it is the default convergence gate in Autoware.</p>
+<h2 id="which-score-gates-convergence"><a class="header" href="#which-score-gates-convergence">Which score gates convergence</a></h2>
+<p><code>converged_param_type</code> selects the gate: <code>0</code> = transform probability, <code>1</code> = nearest-voxel likelihood
+(the config default is <code>1</code>). The selected score is compared against its threshold
+(<code>converged_param_transform_probability</code> or
+<code>converged_param_nearest_voxel_transformation_likelihood</code>); the pure decision — including the
+oscillation override — is <code>convergence::evaluate_convergence</code>, whose
+inputs/verdict are documented on <code>convergence::ConvergenceInput</code> / <code>ConvergenceVerdict</code>.</p>
+<h2 id="traces-and-no-ground-variants"><a class="header" href="#traces-and-no-ground-variants">Traces and no-ground variants</a></h2>
+<p><code>align</code> also records the per-iteration score traces (<code>transform_probability_array</code>,
+<code>nearest_voxel_likelihood_array</code>) for diagnostics/plotting. The sensor callback additionally computes
+<strong>no-ground</strong> TP/NVTL (scores on the cloud with ground points filtered) and publishes them as debug
+topics. Both scores travel out of a match in <code>host::MatchResult</code>.</p>
+<h2 id="how-the-scores-feed-downstream"><a class="header" href="#how-the-scores-feed-downstream">How the scores feed downstream</a></h2>
+<p>The gate result drives publish/skip decisions; the align result’s Hessian and NVTL also seed
+<a href="#covariance-estimation">covariance estimation</a>.</p>
+<blockquote>
+<p>Source: <code>src/convergence.rs</code>, <code>src/ndt.rs</code> (<code>transformation_probability</code>,
+<code>nearest_voxel_transformation_likelihood</code>, <code>finalize</code>), <code>src/host.rs</code> (<code>MatchResult</code>).</p>
+</blockquote>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="using-the-engine-crate"><a class="header" href="#using-the-engine-crate">Using the engine crate</a></h1>
+<p><code>realtime_ndt_scan_matcher</code> is usable as a plain Rust library, independently of ROS. This
+chapter tours the public API. The examples are the crate’s own rustdoc doctests (verified with
+<code>cargo test --doc</code>); browse the full reference with <code>cargo doc --no-deps --open</code>.</p>
+<h2 id="the-nalgebra-re-export"><a class="header" href="#the-nalgebra-re-export">The <code>nalgebra</code> re-export</a></h2>
+<p>Pose guesses and results are <code>nalgebra</code> matrices (<code>Matrix4&lt;f32&gt;</code> for poses, <code>Matrix6&lt;f64&gt;</code> for
+Hessians/covariances). The crate <strong>re-exports the exact <code>nalgebra</code> version it is built against</strong>,
+so construct those matrices through <code>realtime_ndt_scan_matcher::nalgebra</code> rather than pinning
+your own (a different version is a distinct, incompatible type).</p>
+<h2 id="primary-api-ndtengine"><a class="header" href="#primary-api-ndtengine">Primary API: <code>NdtEngine</code></a></h2>
+<p>The persistent engine (<a href="#the-ndt-engine"><code>engine::NdtEngine</code></a>) is the main entry point. Load a
+target map, build the kd-tree, then align sensor clouds:</p>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use realtime_ndt_scan_matcher::engine::NdtEngine;
+use realtime_ndt_scan_matcher::nalgebra::Matrix4;
+
+// Empty engine: 2.0 m voxels; MultiVoxelGridCovariance defaults (min 6 points / eig 0.01).
+let engine = NdtEngine::new(2.0, 6, 0.01, 2_000, 418_000, 30).expect("valid limits");
+
+// Register a target map tile (id 0) and build the kd-tree over the voxel centroids.
+let target: Vec&lt;[f32; 3]&gt; = (0u8..64).map(|i| [f32::from(i) * 0.05, 0.0, 0.0]).collect();
+engine.add_target(&amp;target, b"0");
+engine.create_kdtree().expect("map fits the leaf limit");
+assert!(engine.has_target());
+
+// Align with caller-owned scratch and read the result from that same scratch.
+let source = target.clone();
+let mut scratch = realtime_ndt_scan_matcher::engine::MatchScratch::try_for_limits(engine.limits())
+    .expect("reserve scratch");
+engine.align(&amp;Matrix4::identity(), &amp;source, &amp;mut scratch).expect("align");
+let result = scratch.result_ref();
+assert!(result.iteration_num &gt;= 0);
+<span class="boring">}</span></code></pre>
+<h3 id="caller-owned-scratch"><a class="header" href="#caller-owned-scratch">Caller-owned scratch</a></h3>
+<p>The align scratch (workspace + last result) is a <a href="#matchscratch-and-alignment"><code>engine::MatchScratch</code></a>.
+Every alignment method takes scratch owned by the caller. Reuse it across frames to keep the serial
+path allocation-free from the first call:</p>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use realtime_ndt_scan_matcher::engine::{MatchScratch, NdtEngine};
+use realtime_ndt_scan_matcher::nalgebra::Matrix4;
+
+let engine = NdtEngine::new(2.0, 6, 0.01, 2_000, 418_000, 30).expect("valid limits");
+let target: Vec&lt;[f32; 3]&gt; = (0u8..64).map(|i| [f32::from(i) * 0.05, 0.0, 0.0]).collect();
+engine.add_target(&amp;target, b"0");
+engine.create_kdtree().expect("map fits the leaf limit");
+
+let mut scratch = MatchScratch::try_for_limits(engine.limits()).expect("reserve scratch");
+engine.align(&amp;Matrix4::identity(), &amp;target, &amp;mut scratch).expect("align");
+assert!(scratch.result_ref().iteration_num &gt;= 0);
+<span class="boring">}</span></code></pre>
+<h2 id="portable-orchestration-scanmatcher"><a class="header" href="#portable-orchestration-scanmatcher">Portable orchestration: <code>ScanMatcher</code></a></h2>
+<p><a href="#portability-and-the-host-ports"><code>scan_matcher::ScanMatcher</code></a> wraps the engine and drives it over the
+host ports (<code>MapSource</code> / <code>OutputSink</code> / <code>Clock</code>). Map loading is
+<code>async</code>; the match is the synchronous WCET hot path. It runs unchanged under ROS, a kernel, or an
+async runtime — <code>examples/tokio_ndt.rs</code> is the reference host implementation.</p>
+<h2 id="the-lower-level-kernel-ndtalign"><a class="header" href="#the-lower-level-kernel-ndtalign">The lower-level kernel: <code>ndt::align</code></a></h2>
+<p><a href="#the-align-hot-path"><code>ndt::align</code></a> is the RT-critical alignment function the engine drives. Use it
+directly when you hold a <code>VoxelGridMap</code> yourself:</p>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use realtime_ndt_scan_matcher::ndt::{align, AlignResult, AlignWorkspace, NdtParams};
+use realtime_ndt_scan_matcher::voxel_grid::VoxelGridMap;
+use realtime_ndt_scan_matcher::nalgebra::Matrix4;
+
+let mut map = VoxelGridMap::new([2.0; 3], 6, 0.01);
+let target: Vec&lt;[f32; 3]&gt; = (0u8..64).map(|i| [f32::from(i) * 0.05, 0.0, 0.0]).collect();
+map.add_target(&amp;target, b"0");
+map.try_create_kdtree(418_000).expect("map fits the leaf limit");
+
+let params = NdtParams { resolution: 2.0, ..NdtParams::default() };
+let mut ws = AlignWorkspace::try_with_capacity(target.len()).expect("reserve workspace");
+let mut out = AlignResult::try_with_capacity(30).expect("reserve result");
+align(&amp;map, &amp;target, &amp;Matrix4::identity(), &amp;params, &amp;mut ws, &amp;mut out).expect("align");
+assert!(out.iteration_num &gt;= 0);
+<span class="boring">}</span></code></pre>
+<h2 id="parallelism"><a class="header" href="#parallelism">Parallelism</a></h2>
+<p>Under the <code>parallel</code> feature, set <code>num_threads &gt; 1</code> (in <code>NdtParams</code> / <code>set_params</code>) to use the
+rayon backend. The rayon <em>worker count</em> is the process-global pool size — set it once with
+<code>init_thread_pool(n)</code> or <code>RAYON_NUM_THREADS</code>; see
+<a href="#parallelism-and-worker-threads">Feature flags and build configurations</a>.</p>
+<h2 id="other-public-modules"><a class="header" href="#other-public-modules">Other public modules</a></h2>
+<ul>
+<li><a href="#the-tpe-pose-search"><code>tpe::TreeStructuredParzenEstimator</code></a> — the align-service pose-search sampler.</li>
+<li><a href="#scores-tp-and-nvtl"><code>convergence</code></a>, <code>covariance</code>, <code>cov_estimate</code> — pure decision/estimation
+kernels reused across the ROS and kernel builds.</li>
+<li><code>pose_buffer</code> — a time-ordered pose interpolation buffer.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="feature-flags-and-build-configurations"><a class="header" href="#feature-flags-and-build-configurations">Feature flags and build configurations</a></h1>
+<p>The crate has one code base and several build configurations, selected by Cargo features. The
+<code>std</code> feature is default-on so a plain <code>cargo build</code>/<code>test</code>/<code>clippy</code> has <code>std</code> (test harness +
+panic handler); the <code>no_std</code> build opts out with <code>--no-default-features</code>.</p>
+<h2 id="features"><a class="header" href="#features">Features</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Feature</th><th>Default</th><th>Effect</th></tr>
+</thead>
+<tbody>
+<tr><td><code>std</code></td><td>✅</td><td>Host build. Pulls <code>arc-swap</code> for lock-free engine-state publication. Alignment uses caller-owned <code>MatchScratch</code>; the engine is <code>Sync</code>.</td></tr>
+<tr><td><code>parallel</code></td><td>✅</td><td>rayon-backed <code>compute_derivatives</code> reduction. Implies <code>std</code>. Bit-identical to serial (per-point contributions reduced in index order), so it is a pure throughput option — the serial backend stays the predictable WCET baseline.</td></tr>
+<tr><td><code>mt</code></td><td>❌</td><td>Multi-core <code>no_std</code> (kernel). Replaces the single-core <code>RefCell</code> state cells with <code>awkernel_sync</code> mutexes. Callers pass a <code>&amp;mut MatchScratch</code>, as in every build. Ignored when <code>std</code> is also on.</td></tr>
+<tr><td><code>wcet-count</code></td><td>❌</td><td>Deterministic algorithmic-cost counters on the align path (iterations, neighbours, kd-tree nodes visited) — the worst-input search fitness. Compiled out entirely when off, so the shipping hot path is untouched.</td></tr>
+<tr><td><code>wcet-trace</code></td><td>❌</td><td>Analysis-only per-pass records for cross-language work-shape conformance (SHA-256 leaf ids + kernel payloads). Serial backend only; implies <code>wcet-count</code>. Absent from shipping builds.</td></tr>
+<tr><td><code>bench-kd-force-count</code> / <code>bench-kd-stop-at-cap</code></td><td>❌</td><td>Benchmark-only kd-tree ablations that reconstruct pre-optimization hot-path components for matched-binary timing diagnosis. Disabled in normal and <code>wcet-count</code> builds.</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="parallelism-and-worker-threads"><a class="header" href="#parallelism-and-worker-threads">Parallelism and worker threads</a></h2>
+<p>The <code>parallel</code> backend runs the derivative reduction on rayon’s <strong>process-global thread pool</strong>.
+There are two independent knobs:</p>
+<ul>
+<li>
+<p><strong>Enable parallel</strong> — set the <code>num_threads</code> param <code>&gt; 1</code> (<code>NdtParams.num_threads</code>, the ROS node’s
+<code>num_threads</code> parameter, or <code>ScanMatcher::set_params</code>). This is a <em>switch</em>: <code>&gt; 1</code> selects the rayon
+backend, <code>≤ 1</code> stays serial. It does <strong>not</strong> by itself decide how many workers rayon uses.</p>
+</li>
+<li>
+<p><strong>Set the worker count</strong> — size the process-global pool, in one of two ways (equivalent,
+process-wide):</p>
+<ol>
+<li><strong>Explicit API.</strong> Call <code>init_thread_pool(n)</code> once, early. Best-effort and idempotent — a
+consuming application (e.g. a ROS node) typically calls it once from its own <code>num_threads</code>
+configuration before any align.</li>
+<li><strong>Environment.</strong> <code>RAYON_NUM_THREADS=n</code> (rayon’s built-in), read on first use.</li>
+</ol>
+<p>If neither is set, the pool defaults to the number of logical CPUs.</p>
+</li>
+</ul>
+<p>Because the pool is process-global, <code>n</code> is the total worker count for the whole process (not
+per-engine). The reduction is bit-identical regardless of <code>n</code>, so this only trades throughput for
+WCET predictability — the serial backend (<code>num_threads ≤ 1</code>) stays the predictable RT baseline.</p>
+<h2 id="the-three-engine-configurations"><a class="header" href="#the-three-engine-configurations">The three engine configurations</a></h2>
+<p>The interior mutability of the engine (its target map + params) is chosen at compile time. This
+is the single most important thing to understand about the build matrix; it is detailed in
+<a href="#concurrency-and-interior-mutability">Concurrency and interior mutability</a>.</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Configuration</th><th>How to build</th><th>Cells</th><th>Align scratch</th><th><code>Sync</code>?</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>std</strong> (default)</td><td><code>cargo build</code></td><td><code>ArcSwap&lt;EngineState&gt;</code> (lock-free)</td><td>caller-owned</td><td>yes</td></tr>
+<tr><td><strong><code>no_std</code> single-core</strong></td><td><code>--no-default-features</code></td><td><code>RefCell&lt;Arc&lt;…&gt;&gt;</code></td><td>caller-owned</td><td><strong>no</strong> (rejected at compile time)</td></tr>
+<tr><td><strong><code>no_std</code> multi-core</strong></td><td><code>--no-default-features --features mt</code></td><td><code>awkernel_sync::Mutex&lt;Arc&lt;…&gt;&gt;</code></td><td><strong>caller-owned</strong> <code>MatchScratch</code></td><td>yes</td></tr>
+</tbody>
+</table>
+</div>
+<p>Notes:</p>
+<ul>
+<li><code>parallel</code> implies <code>std</code>, so <code>mt</code> + <code>parallel</code> resolves to the <code>std</code> backend (<code>mt</code> is ignored).</li>
+<li>Every configuration exposes only alignment methods that take a <code>&amp;mut MatchScratch</code>.</li>
+<li>The <code>no_std</code> builds are <em>libraries</em> linked into a final binary that supplies the
+<code>#[panic_handler]</code>; building the <code>no_std</code> rlib standalone will report a missing panic
+handler. The kernel gate used in CI is a targeted <code>cargo rustc --no-default-features --lib --target {x86_64,aarch64}-unknown-none --crate-type rlib</code>.</li>
+</ul>
+<h2 id="source-of-truth"><a class="header" href="#source-of-truth">Source of truth</a></h2>
+<p>The feature definitions and their rationale live in the crate’s <code>Cargo.toml</code>; the engine’s
+interior-mutability matrix is documented at the top of <code>src/engine.rs</code>; the crate-level overview
+is the <code>//!</code> doc in <code>src/lib.rs</code>.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="the-ndt-engine"><a class="header" href="#the-ndt-engine">The NDT engine</a></h1>
+<p><code>NdtEngine</code> (<code>src/engine.rs</code>) is the persistent handle that wraps the target map + params over a
+stable interface. C++ drives incremental map updates, alignment, and scoring through it. The
+defining design choices are <strong><code>&amp;self</code>-only methods</strong> and <strong>interior mutability</strong>, chosen so a
+shared <code>&amp;NdtEngine</code> is sound across concurrent ROS callbacks <em>without an external mutex</em>.</p>
+<h2 id="state"><a class="header" href="#state">State</a></h2>
+<p>The engine holds its mutable state behind interior-mutability cells:</p>
+<ul>
+<li><strong><code>EngineState</code></strong> — the target <code>VoxelGridMap</code>, the <code>NdtParams</code>, the convergence params, the
+covariance config.</li>
+<li><strong>regularization</strong> — a tiny separate cell, so setting it per frame never clones the map.</li>
+<li><strong>align scratch</strong> — caller-owned mutable workspace and result storage, not part of engine state (see <a href="#matchscratch-and-alignment">MatchScratch</a>).</li>
+</ul>
+<p>The config API is a set of <code>&amp;self</code> setters that publish new state: <code>set_params</code>,
+<code>set_convergence_params</code>, <code>set_covariance_config</code>, <code>set_regularization</code>. Map lifecycle:
+<code>add_target</code>, <code>remove_target</code>, <code>create_kdtree</code>, and <code>commit_from</code> (the
+atomic map-update commit). See <a href="#engine-state-and-the-config-api">Engine state and the config API</a>.</p>
+<h2 id="concurrency-three-configurations"><a class="header" href="#concurrency-three-configurations">Concurrency: three configurations</a></h2>
+<p>The interior-mutability cell is chosen at compile time. This is the crate’s central concurrency
+decision; the full treatment is in <a href="#concurrency-and-interior-mutability">Concurrency and interior mutability</a>.</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Build</th><th>Cell</th><th>Read/align path</th><th>Scratch</th><th><code>Sync</code></th></tr>
+</thead>
+<tbody>
+<tr><td><strong>std</strong> (default)</td><td><code>ArcSwap&lt;EngineState&gt;</code></td><td><code>load</code> an immutable snapshot <strong>lock-free</strong></td><td>caller-owned</td><td>yes</td></tr>
+<tr><td><strong><code>no_std</code> single-core</strong></td><td><code>RefCell&lt;Arc&lt;…&gt;&gt;</code></td><td>borrow</td><td>caller-owned</td><td><strong>no</strong></td></tr>
+<tr><td><strong><code>no_std</code> <code>mt</code></strong></td><td><code>awkernel_sync::Mutex&lt;Arc&lt;…&gt;&gt;</code></td><td>short critical section (refcount bump)</td><td><strong>caller-owned</strong></td><td>yes</td></tr>
+</tbody>
+</table>
+</div>
+<p>Key properties in the concurrent configs (std, <code>mt</code>):</p>
+<ul>
+<li><strong>No lock is held across an alignment.</strong> The align path loads an <code>Arc</code> snapshot and works on
+it; a concurrent map update publishes a <em>new</em> state, and the old snapshot lives until its last
+reader drops it.</li>
+<li><strong>Map updates never mutate in place.</strong> <code>apply_map_update</code> builds the new map on a <strong>private
+staging engine</strong>, then <code>commit_from</code> swaps it in with a single atomic store — a lock-free
+double-buffer. A concurrent align therefore never observes a partial or kd-tree-less map.</li>
+<li>A compile-time <code>assert_send_sync::&lt;NdtEngine&gt;()</code> proves <code>Sync</code> in the std/<code>mt</code> configs; the
+single-core <code>no_std</code> engine is intentionally <code>!Sync</code>, so the compiler rejects sharing it.</li>
+</ul>
+<p>This replaces the C++ giant <code>ndt_ptr_</code> mutex on the hot path.</p>
+<h2 id="what-the-engine-is-not"><a class="header" href="#what-the-engine-is-not">What the engine is <em>not</em></a></h2>
+<p>The engine is the read/update data structure, not the control loop. The WCET-bounded computation
+is the free function <a href="#the-align-hot-path"><code>ndt::align</code></a>; node-level state (pose buffers, activation) lives
+in the <code>NdtScanMatcherRs</code> shell, not here.</p>
+<h2 id="sub-chapters"><a class="header" href="#sub-chapters">Sub-chapters</a></h2>
+<ul>
+<li><a href="#engine-state-and-the-config-api">Engine state and the config API</a></li>
+<li><a href="#concurrency-and-interior-mutability">Concurrency and interior mutability</a></li>
+<li><a href="#matchscratch-and-alignment">MatchScratch and the align entry points</a></li>
+</ul>
+<blockquote>
+<p>Source: the module doc at the top of <code>src/engine.rs</code>; <code>tests/concurrency.rs</code>.</p>
+</blockquote>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="engine-state-and-the-config-api"><a class="header" href="#engine-state-and-the-config-api">Engine state and the config API</a></h1>
+<p>The engine’s data lives in <code>EngineState</code>, published through interior-mutability cells (see
+<a href="#concurrency-and-interior-mutability">Concurrency</a>). This chapter covers its fields and the <code>&amp;self</code> API that mutates them.</p>
+<h2 id="enginestate"><a class="header" href="#enginestate"><code>EngineState</code></a></h2>
+<ul>
+<li><code>map</code> — the target <a href="#voxel-grid-and-kd-tree"><code>VoxelGridMap</code></a>.</li>
+<li><code>params</code> — the <code>NdtParams</code> (resolution, epsilon, step size, iteration cap, outlier ratio,
+<code>num_threads</code>).</li>
+<li><code>conv</code> — the <code>ConvergenceParams</code> (<code>converged_param_type</code> + the two thresholds).</li>
+<li><code>cov_config</code> — the <code>CovarianceConfig</code> (estimation mode, scale, temperature, configured 6×6, XY
+search offsets).</li>
+</ul>
+<p>Regularization is <strong>not</strong> part of <code>EngineState</code>; it lives in its own tiny cell so setting it per
+frame never clones the map.</p>
+<h2 id="config-setters-self"><a class="header" href="#config-setters-self">Config setters (<code>&amp;self</code>)</a></h2>
+<p><code>set_params</code>, <code>set_convergence_params</code>, <code>set_covariance_config</code>, and <code>set_regularization</code> publish new
+state. Each is a read-copy-update: clone the current state, mutate the field, publish (see
+<a href="#concurrency-and-interior-mutability">Concurrency</a>). <code>set_params</code> also rebuilds the (still-empty) map at the new
+resolution, mirroring the C++ order (params before <code>addTarget</code>).</p>
+<h2 id="map-lifecycle"><a class="header" href="#map-lifecycle">Map lifecycle</a></h2>
+<ul>
+<li><code>add_target(points, cell_id)</code> — register or replace a tile under its raw byte id;
+<code>remove_target(cell_id)</code> drops one. Bytewise key ordering makes final map assembly independent of
+tile arrival order.</li>
+<li><code>create_kdtree()</code> — rebuild the kd-tree over voxel centroids after tile changes.</li>
+<li><code>has_target()</code> — whether any tile is loaded.</li>
+<li><code>commit_from(&amp;src)</code> — atomically publish another engine’s fully-built state (the map-update commit;
+see <a href="#map-update">Map update</a>).</li>
+<li><code>clone_empty()</code> — copy the config but start with an empty map (the rebuild path).</li>
+</ul>
+<blockquote>
+<p>Source: <code>src/engine.rs</code>.</p>
+</blockquote>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="concurrency-and-interior-mutability"><a class="header" href="#concurrency-and-interior-mutability">Concurrency and interior mutability</a></h1>
+<p>The engine is <code>&amp;self</code>-only so a shared <code>&amp;NdtEngine</code> is sound across concurrent ROS callbacks
+<em>without</em> an external mutex. Its mutable state sits behind an interior-mutability cell whose backend
+is chosen at compile time — the crate’s central concurrency decision.</p>
+<h2 id="the-swapt-cell"><a class="header" href="#the-swapt-cell">The <code>Swap&lt;T&gt;</code> cell</a></h2>
+<p>A <code>Swap&lt;T&gt;</code> alias abstracts the backend, with uniform <code>swap_new</code> / <code>swap_load</code> / <code>swap_store</code> /
+<code>swap_rcu</code> free functions:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Build</th><th><code>Swap&lt;T&gt;</code> backend</th><th>read/align path</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>std</strong> (default)</td><td><code>arc_swap::ArcSwap&lt;T&gt;</code></td><td><code>load_full()</code> — an owned <code>Arc&lt;T&gt;</code> snapshot, <strong>lock-free</strong></td></tr>
+<tr><td><strong><code>no_std</code> single-core</strong></td><td><code>RefCell&lt;Arc&lt;T&gt;&gt;</code></td><td><code>borrow().clone()</code></td></tr>
+<tr><td><strong><code>no_std</code> <code>mt</code></strong></td><td><code>awkernel_sync::Mutex&lt;Arc&lt;T&gt;&gt;</code></td><td>short critical section: one <code>Arc</code> refcount bump</td></tr>
+</tbody>
+</table>
+</div>
+<p><code>swap_load</code> returns an owned <code>Arc&lt;T&gt;</code> so a reader holds a stable snapshot while a concurrent
+<code>store</code>/<code>rcu</code> publishes a new version; the old <code>Arc</code> lives until its last reader drops it.</p>
+<h2 id="read-copy-update-and-the-mt-retry"><a class="header" href="#read-copy-update-and-the-mt-retry">Read-copy-update and the <code>mt</code> retry</a></h2>
+<p>Config/map changes go through <code>swap_rcu</code>: build the next value from the current one, publish
+atomically. Under <code>mt</code> the closure runs <strong>outside</strong> the lock (it may deep-clone a whole map — which
+must never happen with interrupts disabled) and publishes with an optimistic <code>Arc::ptr_eq</code> retry;
+old snapshots drop outside the lock too. Writers (params setup, map commit) are rare, so it converges
+immediately in practice.</p>
+<h2 id="load-free-hot-path--lock-free-map-update"><a class="header" href="#load-free-hot-path--lock-free-map-update">Load-free hot path + lock-free map update</a></h2>
+<ul>
+<li><strong>No lock is held across an alignment.</strong> The align path <code>load</code>s a snapshot and works on it.</li>
+<li><strong>Map updates never mutate in place.</strong> <a href="#map-update"><code>apply_map_update</code></a> builds the new map on a
+private staging engine, then <code>commit_from</code> swaps it in with one atomic store — a concurrent align
+never sees a partial or kd-tree-less map.</li>
+</ul>
+<h2 id="sendsync"><a class="header" href="#sendsync">Send/Sync</a></h2>
+<p>A compile-time <code>const _: () = assert_send_sync::&lt;NdtEngine&gt;()</code> proves the engine is <code>Sync</code> in the
+std and <code>mt</code> configs. The single-core <code>no_std</code> engine is intentionally <code>!Sync</code> (<code>RefCell</code>), so the
+compiler rejects sharing it. Per-align scratch placement follows the config —
+<a href="#matchscratch-and-alignment">MatchScratch</a>.</p>
+<blockquote>
+<p>Source: the module doc + <code>Swap</code> / <code>swap_*</code> helpers in <code>src/engine.rs</code>; <code>tests/concurrency.rs</code>.</p>
+</blockquote>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="matchscratch-and-alignment"><a class="header" href="#matchscratch-and-alignment">MatchScratch and alignment</a></h1>
+<p><code>MatchScratch</code> owns the mutable state for one alignment: a preallocated <code>AlignWorkspace</code>, the last
+<code>AlignResult</code>, and the per-iteration TP/NVTL traces. Construct it from the engine limits and reuse it
+across frames. <code>result_ref()</code> and <code>score_slices()</code> provide borrowed access to the completed result
+without allocating.</p>
+<p>Every engine alignment entry point requires a caller-owned <code>&amp;mut MatchScratch</code>. This makes mutable
+workspace ownership explicit, permits independent alignment on multiple threads, and keeps the
+real-time path allocation-free from the first call when construction succeeds. A scratch instance
+must not be shared between concurrent calls; use one instance per task or worker.</p>
+<p>The scratch capacities are derived from <code>Pmax</code> and <code>Imax</code>. Alignment rejects a scratch whose
+capacities do not cover the engine’s configured limits, rather than growing it in the real-time
+path. The same explicit contract applies in <code>std</code>, single-core <code>no_std</code>, and <code>mt</code> builds.</p>
+<blockquote>
+<p>Source: <code>src/engine.rs</code> (<code>MatchScratch</code>, <code>align</code>, and <code>align_outcome</code>).</p>
+</blockquote>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="the-align-hot-path"><a class="header" href="#the-align-hot-path">The align hot path</a></h1>
+<p><code>ndt::align</code> (<code>src/ndt.rs</code>) is the RT-critical alignment kernel — the Rust equivalent of the
+C++ <code>align</code> / <code>computeTransformation</code> on the default path (<code>use_line_search = false</code>,
+<code>computeStepLengthMT</code>). It is the one function whose worst-case execution time is contracted; see
+<a href="#the-wcet-contract">The WCET contract</a>.</p>
+<h2 id="signature"><a class="header" href="#signature">Signature</a></h2>
+<pre><code class="language-rust ignore">pub fn align(
+    map: &amp;VoxelGridMap,      // target map with kd-tree built
+    source: &amp;[[f32; 3]],     // sensor cloud, base_link frame
+    guess: &amp;Matrix4&lt;f32&gt;,    // initial pose (C++ Matrix4f guess)
+    params: &amp;NdtParams,
+    ws: &amp;mut AlignWorkspace, // reused buffers
+    out: &amp;mut AlignResult,   // result slot; Vec fields reused
+) -&gt; Result&lt;AlignDiagnostics, AlignError&gt;</code></pre>
+<h2 id="the-iteration"><a class="header" href="#the-iteration">The iteration</a></h2>
+<p>Each of at most <code>params.max_iterations</code> iterations does:</p>
+<ol>
+<li><strong>Transform</strong> the source cloud by the current pose estimate <code>p</code> (an f32 <code>Matrix4f</code> transform,
+<code>O(P)</code> for <code>P</code> source points — mirroring the C++ pipeline exactly).</li>
+<li><strong>Compute derivatives</strong> — score, 6-vector gradient, and 6×6 Hessian — by, for each transformed
+point, a voxel-grid <code>radius_search</code> (<code>≤ MAX_NEIGHBORS</code> neighbours) and accumulating each
+neighbour’s Gaussian contribution. This is <code>O(P · K)</code>, the dominant cost.</li>
+<li><strong>Solve</strong> <code>H · Δ = −gradient</code> via a fixed-size 6×6 SVD (mirroring the C++
+<code>JacobiSVD(ComputeFullU|ComputeFullV)</code>), and step the pose.</li>
+</ol>
+<p>The loop stops on the translation-epsilon convergence test or the iteration cap. The result
+carries the final pose, TP/NVTL scores, iteration count, Hessian, and the per-iteration score
+traces (<a href="#scores-tp-and-nvtl">TP and NVTL</a>).</p>
+<h2 id="serial-and-parallel-are-bit-identical"><a class="header" href="#serial-and-parallel-are-bit-identical">Serial and parallel are bit-identical</a></h2>
+<p><code>params.num_threads &gt; 1</code> selects the rayon backend (built under the <code>parallel</code> feature) for the
+derivative reduction. Contributions are per-point-local and collected in <strong>point-index order</strong>
+(an order-preserving <code>IndexedParallelIterator::collect</code>), so the parallel result is <strong>bit-for-bit
+identical</strong> to the serial one. The
+parallel backend is therefore a pure throughput option; the serial backend stays the predictable
+WCET baseline. The reduction runs on rayon’s process-global pool, whose worker count is sized
+separately (the <code>num_threads</code> param via the node handle, <code>init_thread_pool</code>, or <code>RAYON_NUM_THREADS</code>)
+— see <a href="#parallelism-and-worker-threads">Feature flags and build configurations</a>.
+See <a href="#serial-and-parallel-derivatives">Serial and parallel derivatives</a>.</p>
+<h2 id="allocation-and-panics"><a class="header" href="#allocation-and-panics">Allocation and panics</a></h2>
+<p>After warmup the align frame does <strong>zero allocation</strong>: the result <code>Vec</code>s, <code>trans_cloud</code>, and the
+<code>neighbor_idx</code> buffer (bounded by <code>MAX_NEIGHBORS</code>) are pre-reserved and reused, and the 6×6 SVD is
+stack-only. It also cannot panic — the crate denies <code>unwrap</code>/<code>expect</code>/<code>panic</code>/<code>indexing_slicing</code>
+in non-test code. Both properties are load-bearing for the real-time story and are tested
+(<code>tests/zero_alloc.rs</code>) and audited by a real-time review of each engine/align patch.</p>
+<h2 id="the-map-is-read-only-here"><a class="header" href="#the-map-is-read-only-here">The map is read-only here</a></h2>
+<p><code>align</code> borrows the map immutably. Map building/update is the control plane
+(<a href="#map-update">map update</a>), which happens on a staging engine and is committed atomically, so
+the align path never contends with it.</p>
+<h2 id="sub-chapters-1"><a class="header" href="#sub-chapters-1">Sub-chapters</a></h2>
+<ul>
+<li><a href="#voxel-grid-and-kd-tree">Voxel grid and kd-tree</a></li>
+<li><a href="#serial-and-parallel-derivatives">Serial and parallel derivatives</a></li>
+</ul>
+<blockquote>
+<p>Source: the <code>align</code> doc + WCET contract in <code>src/ndt.rs</code> (≈ lines 317, 617); <code>src/derivatives.rs</code>;
+<code>src/voxel_grid.rs</code>; <code>tests/zero_alloc.rs</code>; <code>examples/wcet_frame.rs</code>.</p>
+</blockquote>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="voxel-grid-and-kd-tree"><a class="header" href="#voxel-grid-and-kd-tree">Voxel grid and kd-tree</a></h1>
+<p>The target-map data structure the align path queries. It ports the C++ <code>MultiVoxelGridCovariance</code>.</p>
+<h2 id="structures"><a class="header" href="#structures">Structures</a></h2>
+<ul>
+<li><strong><code>Leaf</code></strong> — one occupied voxel: its centroid and inverse covariance (the Gaussian the score
+evaluates against).</li>
+<li><strong><code>VoxelGrid</code></strong> — one map tile’s voxels, built from a point cloud.</li>
+<li><strong><code>VoxelGridMap</code></strong> — the multi-tile map (a <code>BTreeMap&lt;Vec&lt;u8&gt;, VoxelGrid&gt;</code> keyed by raw byte-string
+tile id), plus a flat leaf list and a kd-tree over centroids for neighbor queries.</li>
+</ul>
+<h2 id="building-a-grid"><a class="header" href="#building-a-grid">Building a grid</a></h2>
+<p><code>VoxelGridMap::new([leaf_size; 3], min_points, eig_mult)</code> sets the voxel size and conditioning knobs.
+<code>add_target(points, id)</code> buckets <code>points</code> into voxels; a voxel with at least <code>min_points</code> points
+becomes a <code>Leaf</code> with a mean + covariance, and the covariance’s smallest eigenvalues are inflated by
+<code>eig_mult</code> so thin/planar cells stay invertible (the pcl default 6 / 0.01). Adding or removing a tile
+invalidates the kd-tree.</p>
+<h2 id="the-kd-tree"><a class="header" href="#the-kd-tree">The kd-tree</a></h2>
+<p><code>create_kdtree()</code> flattens all tiles’ leaves in id order (matching the C++ <code>std::map</code> order) and
+builds a 3-D kd-tree over the centroids. <code>radius_search(point, radius, max_nn, out)</code> returns the flat
+leaf indices whose centroid is within <code>radius</code>, up to <code>max_nn</code>; <code>leaf(idx)</code> fetches a leaf by that
+flat index. The tree splits on <code>axis = depth % 3</code>.</p>
+<h2 id="cost-and-the-wcet-residual"><a class="header" href="#cost-and-the-wcet-residual">Cost and the WCET residual</a></h2>
+<p>Each align iteration does one <code>radius_search</code> per source point, capped at <code>MAX_NEIGHBORS</code>. The
+kd-tree traversal is worst-case <code>O(N_leaves)</code> for adversarial point distributions — an <strong>accepted
+residual</strong> for the <a href="#the-wcet-contract">WCET contract</a>, benign for physical, roughly-uniform voxel maps.</p>
+<blockquote>
+<p>Source: <code>src/voxel_grid.rs</code>, <code>src/kdtree.rs</code>.</p>
+</blockquote>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="serial-and-parallel-derivatives"><a class="header" href="#serial-and-parallel-derivatives">Serial and parallel derivatives</a></h1>
+<p>How the NDT score, gradient, and 6×6 Hessian are accumulated for a candidate pose, and why the
+parallel backend is bit-identical to the serial one.</p>
+<h2 id="angle-derivatives-and-per-point-kernels"><a class="header" href="#angle-derivatives-and-per-point-kernels">Angle derivatives and per-point kernels</a></h2>
+<p>Once per pose, <code>compute_angle_derivatives</code> precomputes the angular Jacobian (<code>j_ang</code>, 8×4) and
+Hessian (<code>h_ang</code>, 16×4) tables — the derivatives of the rotation w.r.t. <code>[roll, pitch, yaw]</code>. For
+each transformed source point, <code>point_contribution</code> finds its voxel neighbors (radius search) and
+accumulates that point’s score, gradient, and point-Hessian contribution; <code>finalize</code> folds in the
+optional <a href="#ndt-scan-matching-primer">regularization</a> term and assembles the <code>Derivatives</code>.</p>
+<h2 id="serial-vs-parallel"><a class="header" href="#serial-vs-parallel">Serial vs parallel</a></h2>
+<p><code>compute_derivatives</code> is the serial backend (one reused neighbor buffer). <code>compute_derivatives_parallel</code>
+(under the <code>parallel</code> feature) runs the per-point work on rayon’s process-global pool via
+<code>par_iter().zip(...).map_init(...).collect()</code> into <code>ws.contribs</code>, giving each worker its own
+reusable neighbor buffer. <code>align</code> selects it when <code>params.num_threads &gt; 1</code>.</p>
+<h2 id="bit-for-bit-identical"><a class="header" href="#bit-for-bit-identical">Bit-for-bit identical</a></h2>
+<p>The order-preserving <code>IndexedParallelIterator::collect</code> keeps point-index order, so the parallel
+contributions are folded in the <strong>same order</strong> as serial → the two agree <strong>bit-for-bit</strong> (pinned by
+tests). Parallelism is therefore
+a pure throughput option, never a numeric change; the serial backend stays the predictable WCET
+baseline. The worker count is sized separately (see
+<a href="#parallelism-and-worker-threads">Parallelism and worker threads</a>).</p>
+<h2 id="exact-hessian"><a class="header" href="#exact-hessian">Exact Hessian</a></h2>
+<p>Since PR #1217 fixed the <code>h_ang</code> “d1” pitch² sign (<code>+sy</code> → <code>-sy</code>), the assembled Hessian equals the
+true second derivative and finite-difference-validates over all six rows (see
+<a href="#divergences-from-upstream">Divergences from upstream</a>).</p>
+<blockquote>
+<p>Source: <code>src/derivatives.rs</code>, <code>src/ndt.rs</code> (<code>compute_derivatives[_parallel]</code>, <code>finalize</code>); the
+<code>*_bit_identical</code> tests.</p>
+</blockquote>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="covariance-estimation"><a class="header" href="#covariance-estimation">Covariance estimation</a></h1>
+<p>After a match, the 6×6 pose covariance published with the estimate is produced by one of four modes,
+selected by <code>CovarianceConfig.estimation_type</code> and driven by
+<a href="#the-ndt-engine"><code>NdtEngine::estimate_covariance</code></a>.</p>
+<h2 id="the-four-modes"><a class="header" href="#the-four-modes">The four modes</a></h2>
+<ul>
+<li><strong><code>FIXED_VALUE</code> (0)</strong> — the configured <code>output_pose_covariance</code>, rotated into the map frame by the
+result pose’s rotation (<code>helper::rotate_covariance</code>).</li>
+<li><strong><code>LAPLACE</code> (1)</strong> — the XY covariance from the align <strong>Hessian</strong> (<code>laplace_xy_covariance</code>, the
+Laplace approximation <code>H⁻¹</code>).</li>
+<li><strong><code>MULTI_NDT</code> (2)</strong> — re-run the full <code>align</code> from each candidate pose around the result
+(<code>propose_poses_to_search(center, offset_x, offset_y)</code>), then take the sample XY covariance of the
+converged poses with the unbiased <code>(n-1)/n</code> correction (<code>estimate_xy_covariance_by_multi_ndt</code>).</li>
+<li><strong><code>MULTI_NDT_SCORE</code> (3)</strong> — for each candidate, transform the source and score it (no re-align),
+then a temperature-scaled softmax of the scores weights a weighted mean/covariance
+(<code>estimate_xy_covariance_by_multi_ndt_score</code>, <code>calc_weight_vec</code>).</li>
+</ul>
+<h2 id="frame-handling"><a class="header" href="#frame-handling">Frame handling</a></h2>
+<p>The XY covariance is computed in base_link, clamped to floors, and rotated back to map:
+<code>rotate_covariance_to_base_link</code> / <code>rotate_covariance_to_map</code> (<code>Rᵀ C R</code> / <code>R C Rᵀ</code> on the 2×2 yaw
+block) and <code>adjust_diagonal_covariance</code>. The engine wrapper builds the 3×3 <code>rot3x3</code> from the result
+pose’s rotation block, so the full 6×6’s position block is rotated consistently.</p>
+<h2 id="configuration-and-checks"><a class="header" href="#configuration-and-checks">Configuration and checks</a></h2>
+<p>The mode, <code>scale_factor</code>, softmax <code>temperature</code>, the configured 6×6, and the XY search offsets come
+from <code>set_covariance_config</code>. The multi-NDT result is symmetric PSD (pinned by
+<code>multi_ndt_covariance_is_symmetric_psd</code>).</p>
+<blockquote>
+<p>Source: <code>src/cov_estimate.rs</code>, <code>src/covariance.rs</code>, <code>src/engine.rs</code> (<code>estimate_covariance</code>),
+<code>src/helper.rs</code> (<code>rotate_covariance</code>).</p>
+</blockquote>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="the-tpe-pose-search"><a class="header" href="#the-tpe-pose-search">The TPE pose search</a></h1>
+<p>The align-service (initial-pose) search uses a Tree-Structured Parzen Estimator over a 6-D pose
+<code>[x, y, z, roll, pitch, yaw]</code> — <code>tpe::TreeStructuredParzenEstimator</code>.</p>
+<h2 id="the-proposeevaluate-loop"><a class="header" href="#the-proposeevaluate-loop">The propose/evaluate loop</a></h2>
+<p>The search (driven by the consuming application) runs: draw a candidate with <code>get_next_input</code>,
+build a pose, align the engine from it, then feed the outcome back with <code>add_trial</code>. It keeps the
+best-scoring particle and reports the per-particle initial/result poses, scores, and iteration
+counts.</p>
+<h2 id="the-sampler"><a class="header" href="#the-sampler">The sampler</a></h2>
+<p>Until <code>n_startup_trials</code> trials accumulate, TPE samples the prior: the five prior dims
+(<code>x, y, z, roll, pitch</code>) from Gaussians around the initial pose (standard deviations from the request
+covariance diagonal), plus <code>yaw</code> uniform over <code>-π, π)</code>. After startup it partitions trials into an
+“above” (better) and “below” set and picks candidates by expected improvement from above/below
+Gaussian KDEs.</p>
+<h2 id="determinism"><a class="header" href="#determinism">Determinism</a></h2>
+<p>The RNG is a Rust-owned <code>SplitMix64</code> + Box-Muller, seeded per request with a fixed seed. This
+deliberately does <strong>not</strong> reproduce libstdc++’s <code>std::normal_distribution</code> sample sequence — that
+sequence is implementation-defined and not portable — which is why exact candidate-trace equivalence
+with the C++ search is out of scope (see <a href="#divergences-from-upstream">Divergences</a>). It is deterministic
+for a fixed seed, so the search is reproducible and unit-testable.</p>
+<h2 id="public-api"><a class="header" href="#public-api">Public API</a></h2>
+<p>The sampler is plain Rust — no FFI. <code>TreeStructuredParzenEstimator</code> (<code>get_next_input</code> /
+<code>add_trial</code> / <code>new</code> / <code>with_seed</code>) plus the <code>Direction { Maximize, Minimize }</code>, <code>Error</code>, and <code>Trial</code>
+types. The propose/evaluate search loop that drives it lives in the consuming ROS node, not this
+crate.</p>
+<blockquote>
+<p>Source: <code>src/tpe.rs</code>.</p>
+</blockquote>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="map-update"><a class="header" href="#map-update">Map update</a></h1>
+<p>How the target map is refreshed at runtime without disturbing concurrent alignment.</p>
+<h2 id="policy-vs-mechanism"><a class="header" href="#policy-vs-mechanism">Policy vs mechanism</a></h2>
+<p>Deciding <em>when</em> an update is needed — first update, and whenever the vehicle has moved far enough
+that the loaded map can no longer cover the LiDAR range — and whether a full rebuild is required is a
+policy the consuming application owns. This crate provides the <em>mechanism</em>: the loaded cell ids live
+in the engine, and <code>scan_matcher::apply_map_update</code> performs the staged build and atomic publish.</p>
+<h2 id="the-atomic-commit"><a class="header" href="#the-atomic-commit">The atomic commit</a></h2>
+<p><code>scan_matcher::apply_map_update</code> performs:</p>
+<ol>
+<li><code>source.load(center, radius).await</code> — fetch the delta through the async <code>MapSource</code>
+port (empty delta ⇒ no-op, no republish).</li>
+<li>Build the new map on a <strong>private staging engine</strong> — <code>engine.clone()</code> for an incremental update, or
+<code>engine.clone_empty()</code> for a rebuild — apply the added/removed tiles, and <code>create_kdtree()</code>.</li>
+<li><code>engine.commit_from(&amp;staging)</code> — one atomic store publishes the fully-built map.</li>
+</ol>
+<p>Because the map is built off to the side and swapped in with a single atomic step
+(<a href="#concurrency-and-interior-mutability">Concurrency</a>), a concurrent align never observes a partial or kd-tree-less map.</p>
+<h2 id="division-of-responsibility"><a class="header" href="#division-of-responsibility">Division of responsibility</a></h2>
+<p>This crate owns the canonical map state, the staging build, and the atomic publication. Map I/O —
+the pcd-loader service call and debug-map publication — belongs to the caller, which supplies loaded
+tiles through the async <code>MapSource</code> port and drives <code>apply_map_update</code>.</p>
+<blockquote>
+<p>Source: <code>src/scan_matcher.rs</code> (<code>apply_map_update</code>), <code>src/engine.rs</code> (<code>commit_from</code>, <code>clone_empty</code>).</p>
+</blockquote>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="portability-and-the-host-ports"><a class="header" href="#portability-and-the-host-ports">Portability and the Host ports</a></h1>
+<p>The same algorithm core runs under ROS, a bare-metal kernel, or an async runtime because it is
+written against the Host ports, not against ROS.</p>
+<h2 id="scanmatcher-and-the-host-ports"><a class="header" href="#scanmatcher-and-the-host-ports"><code>ScanMatcher</code> and the <code>Host</code> ports</a></h2>
+<p><code>scan_matcher::ScanMatcher</code> is a concrete struct wrapping an <a href="#the-ndt-engine"><code>NdtEngine</code></a>. It is not
+generic over <code>Host</code>; instead its map-update methods are generic over the <code>MapSource</code> port, so a
+caller supplies map I/O without the matcher depending on ROS:</p>
+<ul>
+<li><code>match_scan(guess, source, &amp;mut scratch) -&gt; Result&lt;MatchResult, AlignError&gt;</code> and
+<code>match_scan_with_covariance(...) -&gt; Result&lt;(MatchResult, CovarianceResult), AlignError&gt;</code> —
+<strong>synchronous</strong>, the WCET hot path.</li>
+<li><code>update_map&lt;S: MapSource&gt;(&amp;source, center, radius).await</code> — <strong>async</strong>, over the <code>MapSource</code> port.</li>
+</ul>
+<p>It holds no per-align mutable state, so a shared <code>&amp;ScanMatcher</code> is sound across concurrent tasks in
+the std and <code>mt</code> configs (map updates publish atomically).</p>
+<h2 id="the-no_std-gating-discipline"><a class="header" href="#the-no_std-gating-discipline">The <code>no_std</code> gating discipline</a></h2>
+<p><code>lib.rs</code> is <code>#![cfg_attr(not(any(test, feature = "std")), no_std)]</code>. The algorithmic modules
+(<code>scan_matcher</code>, <code>host</code>, <code>engine</code>, <code>convergence</code>, <code>covariance</code>, <code>cov_estimate</code>, <code>ndt</code>, <code>voxel_grid</code>,
+<code>tpe</code>, …) are <code>no_std</code>. The only <code>#[cfg(feature = "std")]</code>-gated modules are <code>capture</code> and <code>fixture</code>
+(both file-IO tooling); <code>wcet</code> is gated on <code>wcet-count</code>. New algorithmic code goes in the portable
+core so the kernel build keeps it; only host-only tooling may be <code>std</code>-gated.</p>
+<h2 id="reference-adapters"><a class="header" href="#reference-adapters">Reference adapters</a></h2>
+<ul>
+<li><code>examples/tokio_ndt.rs</code> — the async reference host over synthetic data (proves the <code>Host</code> seam).</li>
+<li><code>examples/threads_ndt.rs</code> — multi-threaded shared-engine usage.</li>
+</ul>
+<p>The kernel (Track-B) target is the reason for this split: it supplies its own async runtime and map
+source (flash/DMA) and builds the core with <code>--no-default-features</code> (single-core) or <code>--features mt</code>
+(multi-core); see <a href="#the-mt-multi-core-engine">The <code>mt</code> multi-core engine</a>.</p>
+<blockquote>
+<p>Source: <code>src/scan_matcher.rs</code>, <code>src/host.rs</code>, <code>examples/{tokio_ndt,threads_ndt}.rs</code>, <code>src/lib.rs</code>.</p>
+</blockquote>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="numeric-parity"><a class="header" href="#numeric-parity">Numeric parity</a></h1>
+<p>Keeping the Rust math bit-comparable to the C++/pcl reference, so the <a href="#differential-testing">differential
+tests</a> can hold tight tolerances.</p>
+<h2 id="the-f32-matrix4f-pipeline"><a class="header" href="#the-f32-matrix4f-pipeline">The f32 <code>Matrix4f</code> pipeline</a></h2>
+<p>The per-iteration cloud transform runs in <strong>f32</strong>, mirroring the C++ <code>Matrix4f</code> pipeline exactly —
+including the deliberate <code>f32</code>/<code>usize</code>↔int casts that the crate’s lint allowlist documents. Matching
+the quantization (not “improving” it to f64) is what keeps the poses bit-comparable.</p>
+<p>Real-map replay (22,416 İstanbul frames) exposed three f32 subtleties that <strong>translation-only
+fixtures are structurally blind to</strong> (rotated poses are where f32 op order matters; products with
+the 0/1 entries of a pure translation are exact in any order). All three are now mirrored:</p>
+<ul>
+<li><strong>Initial pass = guess-matrix transform.</strong> C++ transforms the first derivative pass by the guess
+<code>Matrix4f</code> directly (<code>pcl::transformPointCloud(output, output, guess)</code>) and records the guess in
+<code>transformation_array[0]</code>; only subsequent passes rebuild from the Euler 6-vector.
+<code>R_rebuilt(euler(R)) != R</code> in f32 — rebuilding on the first pass displaced points by
+~ULP(coordinate), millimetres at 60 km map coordinates.</li>
+<li><strong>pcl’s transform association.</strong> pcl 1.12’s SSE <code>Transformer&lt;float&gt;::se3</code> computes
+<code>x·c0 + (y·c1 + (z·c2 + t))</code> — right-associated, translation innermost.
+<code>transform_cloud_by_matrix</code> keeps that association (a left-associated <code>r·v + t</code> rounds
+differently for rotated poses).</li>
+<li><strong>Eigen’s <code>AngleAxisf</code> diagonal.</strong> <code>toRotationMatrix</code> computes the on-axis diagonal as
+<code>(1 − c) + c</code>, which is not always exactly <code>1.0f</code>; <code>se3_matrix_f32</code> reproduces it.</li>
+</ul>
+<h2 id="scalar-math-libm-and-where-it-can-differ-from-glibc"><a class="header" href="#scalar-math-libm-and-where-it-can-differ-from-glibc">Scalar math: <code>libm</code>, and where it can differ from glibc</a></h2>
+<p><code>libm</code> provides <code>sqrt</code>/trig/<code>exp</code> in both std and <code>no_std</code>. IEEE <code>sqrt</code> is correctly rounded, so it
+matches <code>std::sqrt</code> bit-for-bit; the Gauss constants (<code>gauss_constants</code> from <code>outlier_ratio</code> /
+<code>resolution</code>) are computed identically. The transcendentals are <strong>not</strong> correctly rounded in either
+library: <code>libm</code>’s <code>sinf</code>/<code>cosf</code> disagree with glibc’s on ~1.25 % of arguments (both ≤ 1 ULP,
+differently rounded; measured), and f64 <code>exp</code> differs at ULP level. <code>libm</code> is kept deliberately —
+build/ISA determinism of the engine outweighs the last ULP of host parity. Measured consequence on
+22,416 real frames: <strong>99.9 % identical iteration counts</strong>; the 0.12 % residual is ±1-iteration
+flips on knife-edge frames driven by sub-f32-ULP f64-trajectory differences (<code>libm</code>-vs-glibc <code>exp</code>
+plus the nalgebra-vs-Eigen eigensolver at ≤ 2e-15 relative on inverse covariances). The
+comparison harness certifies equal work <strong>per frame</strong> (<code>iteration_num</code> assertion), so residual
+frames are flagged, never silently compared.</p>
+<h2 id="serialparallel-bit-identity"><a class="header" href="#serialparallel-bit-identity">Serial/parallel bit-identity</a></h2>
+<p>The parallel derivative reduction is order-preserving, so it is bit-for-bit identical to serial (see
+<a href="#serial-and-parallel-derivatives">Serial and parallel derivatives</a>) — parallelism never perturbs parity.</p>
+<h2 id="the-hessian"><a class="header" href="#the-hessian">The Hessian</a></h2>
+<p>The NDT angle Hessian (<code>h_ang</code>) is the exact analytic second derivative since the PR #1217 “d1”
+pitch² sign fix; the full 6×6 Hessian now finite-difference-validates. Historically this was the one
+place the port intentionally reproduced a C++ quirk — see <a href="#divergences-from-upstream">Divergences from upstream</a>.</p>
+<h2 id="tolerances"><a class="header" href="#tolerances">Tolerances</a></h2>
+<p>The differential checks use: pose translation ≤ 1e-3 m, rotation ≤ 1e-3 rad, TP / NVTL ≤ 1e-4,
+iteration count <strong>exact</strong>. On the real-map replay, iteration equality holds on 99.9 % of frames
+(see above); synthetic fixtures hold it on 100 % — and because they are translation-only, they
+would not have caught the rotated-pose subtleties. Differential fixtures for parity work should
+include <strong>rotated</strong> guesses at <strong>large map coordinates</strong>.</p>
+<blockquote>
+<p>Source: <code>src/transform.rs</code>, <code>src/ndt.rs</code>, <code>src/derivatives.rs</code>.</p>
+</blockquote>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="differential-testing"><a class="header" href="#differential-testing">Differential testing</a></h1>
+<p>The ON-vs-OFF oracle in practice: drive identical inputs through the reference C++ path
+(<code>NDT_USE_RUST=OFF</code>) and the Rust path (<code>ON</code>) and diff the observables. This is the authoritative
+correctness mechanism (see Behavior equivalence and verification).</p>
+<h2 id="building-both-paths"><a class="header" href="#building-both-paths">Building both paths</a></h2>
+<p>The Rust differential/FFI gtests are registered only under <code>-DNDT_USE_RUST=ON</code> (they link the crate
+alongside the C++ engine in one test binary). Build that way, then <code>colcon test</code>; the always-on
+C++/integration suites run in both backends. This harness lives in the consuming ROS node crate,
+which depends on this engine — the exact build/test commands are documented there.</p>
+<h2 id="layers"><a class="header" href="#layers">Layers</a></h2>
+<ul>
+<li><strong>Unit / property gtests</strong> — the pure kernels checked against a reference or a brute-force oracle:
+<code>test_voxel_grid</code> (Rust <code>VoxelGridMap</code> vs C++ <code>MultiVoxelGridCovariance</code>), <code>test_ndt_engine</code> (Rust align vs the C++ NDT engine),
+<code>test_convergence_verdict</code>, <code>test_map_update_verdict</code>, …</li>
+<li><strong>FFI direct-call tests</strong> — because <code>cargo llvm-cov</code> sees only Rust, the <code>extern "C"</code> shims (in the
+node crate) get Rust-side direct-call tests too.</li>
+<li><strong>Integration</strong> — the <code>standard_sequence_*</code> launch/gtests drive the full node on a fixed sequence
+in both backends.</li>
+</ul>
+<h2 id="observables-compared"><a class="header" href="#observables-compared">Observables compared</a></h2>
+<p>Estimated pose, covariance, transform probability, NVTL, iteration count, convergence status,
+diagnostics, service responses, and map-update behavior — to the tolerances in
+Verification, with any documented <a href="#divergences-from-upstream">upstream divergence</a> mirrored
+so the diff stays green.</p>
+<blockquote>
+<p>Source: the consuming ROS package’s C++ gtests and <code>standard_sequence_*</code> launch tests, and its
+<code>NDT_USE_RUST</code> test registrations. This engine crate’s own tests are <code>tests/{concurrency, wcet_bounds, zero_alloc}.rs</code> plus the in-<code>src</code> numeric/finite-difference unit tests.</p>
+</blockquote>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="trace-based-state-machine-verification"><a class="header" href="#trace-based-state-machine-verification">Trace-based state-machine verification</a></h1>
+<p>For control-flow-heavy paths — notably the align service — a byte-for-byte output diff is too brittle
+and too coarse. Instead the port proves equivalence with an <strong>abstract semantic trace</strong>: a spec-level
+state machine emitting only the fields that matter, instrumented on both sides and diffed.</p>
+<h2 id="the-workflow"><a class="header" href="#the-workflow">The workflow</a></h2>
+<ol>
+<li>Establish the C++ baseline behavior.</li>
+<li>Model it as a spec-level state machine (the decision points, not the ROS plumbing).</li>
+<li>Emit an abstract trace of semantic events from both C++ and Rust.</li>
+<li>Differentially test the traces; triage divergences; add regression tests.</li>
+</ol>
+<h2 id="where-the-trace-lives"><a class="header" href="#where-the-trace-lives">Where the trace lives</a></h2>
+<p>The concrete align-service trace buffer — a semantic-event record covering the gate decision, the
+diagnostic level, the search summary, and the response payload (never raw ROS message bytes) — is
+part of the consuming ROS node crate, since the align service itself is. This engine crate
+contributes the piece that makes those traces reproducible: the deterministic, seedable TPE sampler
+(<code>src/tpe.rs</code>), so a fixed seed yields a fixed candidate sequence for the checks below.</p>
+<h2 id="split-by-determinism"><a class="header" href="#split-by-determinism">Split by determinism</a></h2>
+<p>Deterministic control flow (request validation, availability gates, initial-pose branch selection,
+response packaging, and the host side-effect summary: topic/type/count) gets <strong>exact</strong> trace checks.
+The TPE/NDT search — where libstdc++’s sampler makes exact candidate traces unstable — gets
+tolerance checks on the align outcome and property/statistical checks on search quality instead (see
+Verification). Tolerances are established from measured C++ baseline self-variance,
+not invented up front.</p>
+<blockquote>
+<p>Source: <code>src/tpe.rs</code> (the deterministic, seedable sampler that makes the search reproducible).</p>
+</blockquote>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="divergences-from-upstream"><a class="header" href="#divergences-from-upstream">Divergences from upstream</a></h1>
+<p>Porting diffs the C++ and Rust implementations directly, which makes it the best opportunity to
+find <strong>upstream bugs</strong>. The port’s policy is deliberate and may be surprising: when the C++
+reference diverges from expected-correct behavior, the Rust port <strong>reproduces the C++ behavior</strong>
+rather than fixing it locally.</p>
+<h2 id="why-reproduce-not-fix"><a class="header" href="#why-reproduce-not-fix">Why reproduce, not fix</a></h2>
+<p>The differential test against C++ is the oracle (see <em>Behavior equivalence and verification</em> in the node crate book). If the Rust
+port silently “corrected” a C++ bug, the differential test would go red and we would lose the
+ability to prove equivalence. So the correct fix belongs <strong>upstream</strong> (in pcl / Autoware), and the
+port keeps the C++ behavior verbatim until that upstream fix lands.</p>
+<h2 id="the-process-for-a-discovered-divergence"><a class="header" href="#the-process-for-a-discovered-divergence">The process for a discovered divergence</a></h2>
+<ol>
+<li><strong>Notify the user immediately</strong> — what / where / evidence / impact. Never silently absorb it.</li>
+<li><strong>Record it</strong> in this chapter’s divergence list — one entry per finding: location · type ·
+evidence · correct value · impact · decision · revisit trigger · upstream link · verification.</li>
+<li><strong>Reproduce, don’t fix locally.</strong> Mark the site in code (<code>PORT-QUIRK</code>) and pin it with a test,
+so an accidental “fix” fails loudly.</li>
+<li><strong>Fix upstream.</strong> File/draft an upstream issue and link it.</li>
+</ol>
+<h2 id="follow-the-fix-when-upstream-lands"><a class="header" href="#follow-the-fix-when-upstream-lands">Follow the fix when upstream lands</a></h2>
+<p>Reproduce-not-fix is temporary per finding. Once the upstream fix lands, the port <strong>follows it</strong>:
+update the Rust to match the corrected C++, widen or re-point the pinning test to the corrected
+value, and move the entry to <em>Resolved</em> below. Following the fix restores <code>ON == OFF</code> (both now
+compute the corrected value).</p>
+<h2 id="resolved"><a class="header" href="#resolved">Resolved</a></h2>
+<ul>
+<li>
+<p><strong>NDT <code>h_ang</code> “d1” sign bug — fixed upstream (PR #1217), port followed.</strong>
+<code>computeAngleDerivatives()</code> built the angular Hessian table <code>h_ang</code> with the pitch² x-coefficient
+as <code>+sy</code>, where the exact second derivative is <code>-sy</code> (row 6, “d1”). It affected only the Newton
+search direction, not the optimum. The port originally reproduced <code>+sy</code> to stay bit-identical with
+the then-buggy C++; when the upstream fix landed the port followed it (<code>src/derivatives.rs</code>, now
+<code>-sy</code>). With the sign corrected the pcl NDT Hessian is the <strong>exact</strong> analytic Hessian, so the full
+6×6 Hessian now finite-difference-validates — the FD tests
+(<code>update_derivatives_gradient_and_hessian_match_finite_difference</code> in <code>src/derivatives.rs</code>,
+<code>compute_derivatives_matches_finite_difference</code> in <code>src/ndt.rs</code>) cover all six rows and pin the
+corrected sign directly (they fail on <code>+sy</code>).</p>
+</li>
+<li>
+<p><strong>Step-length clamp panic — a port bug (not upstream), fixed 2026-07-10.</strong>
+The default-path step length port used <code>f64::clamp(step_min, step_size)</code>, which <strong>panics</strong> when a
+misconfigured <code>trans_epsilon / 2 &gt; step_size</code> makes <code>min &gt; max</code>. The C++ (<code>computeStepLengthMT</code>,
+<code>multigrid_ndt_omp_impl.hpp:953-955</code>) applies <code>std::min(a_t, step_max)</code> <strong>then</strong>
+<code>std::max(a_t, step_min)</code> — never panicking, yielding <code>step_min</code> in that case. The port now
+mirrors the exact min-then-max order (<code>src/ndt.rs</code>; Rust <code>f64::min</code>/<code>max</code> also match
+<code>std::min</code>/<code>max</code> on single-NaN operands). Found by the 2026-07-10 numeric-hazard scan; pinned by
+<code>align_degenerate_step_bounds_do_not_panic</code>.</p>
+</li>
+</ul>
+<h2 id="degenerate-domain-guards-rust-only"><a class="header" href="#degenerate-domain-guards-rust-only">Degenerate-domain guards (Rust-only)</a></h2>
+<p>Per the roadmap’s Rule 3 (<code>plan/ndt_pr.md</code>), the port adds <strong>branch-only guards</strong> at sites the C++
+leaves unguarded. Each fires <strong>only on the degenerate domain</strong> (where C++ produces NaN/Inf/garbage),
+so the valid-domain differential tests are unaffected. Added by the 2026-07-10 hazard scan:</p>
+<ul>
+<li><strong>Non-finite result pose → non-converged</strong> (<code>src/engine.rs</code>, <code>run_align</code>): the
+convergence verdict is forced to <code>is_converged = false</code> when the align result pose is not finite,
+so no consumer publishes NaN/Inf downstream (the node gates every pose/TF publish on
+<code>is_converged</code>). Pinned by <code>run_align_gates_non_finite_pose_to_not_converged</code>.</li>
+<li><strong><code>asin</code> domain clamp</strong> (<code>src/transform.rs</code>, <code>matrix_to_euler</code>): the sine argument is
+clamped to <code>[-1, 1]</code> — FP error near gimbal can push <code>|m02|</code> past 1, where <code>asin</code> returns NaN
+(C++ uses the atan2-based Eigen <code>eulerAngles</code>, which cannot NaN). Pinned by
+<code>matrix_to_euler_clamps_asin_overshoot</code>.</li>
+<li><strong>Gauss-constants config clamp</strong> (<code>src/transform.rs</code>, <code>gauss_constants</code>): degenerate
+configs (<code>resolution &lt;= 0</code>, <code>outlier_ratio</code> outside <code>(0, 1)</code>, non-finite) are clamped into the
+valid domain; the C++ (<code>computeTransformation</code> lines 229-233) yields <code>inf</code>/<code>log(0)</code>/NaN there,
+poisoning every score. Pinned by <code>gauss_constants_degenerate_configs_stay_finite</code> (+ a
+bit-identical valid-domain test).</li>
+<li><strong>Softmax temperature guard</strong> (<code>src/covariance.rs</code>, <code>calc_weight_vec</code>): non-positive or
+non-finite temperature falls back to uniform <code>1/n</code> weights; C++
+(<code>estimate_covariance.cpp:135</code>) divides unguarded. Pinned by
+<code>calc_weight_vec_degenerate_temperature_is_uniform</code>.</li>
+</ul>
+<p>(Further degenerate-input guards on the sensor-input and align-service paths live in the consuming
+ROS node crate and are documented there, not here.)</p>
+<h2 id="intentional-differences"><a class="header" href="#intentional-differences">Intentional differences</a></h2>
+<p><strong>Transcendental ULPs: <code>libm</code> kept over platform parity.</strong> The engine’s <code>sinf</code>/<code>cosf</code>/<code>exp</code> come
+from the pure-Rust <code>libm</code> crate for build/ISA determinism; glibc rounds ~1.25 % of f32 trig
+arguments differently (both ≤ 1 ULP correct). Together with the nalgebra-vs-Eigen eigensolver’s
+≤ 2e-15 inverse-covariance noise, this leaves an irreducible ±1-iteration divergence on 0.12 % of
+real-map frames (28 of 22,416 measured; knife-edge convergence tests). Adopting platform trig was
+measured to recover exactly one frame and was rejected — the per-frame <code>iteration_num</code>
+certification in the comparison harness handles the residual. See
+<a href="#numeric-parity">Numeric parity</a> for the fixed (non-intentional) rotated-pose findings.</p>
+<p>The align-service TPE uses a deterministic Rust-owned sampler instead of libstdc++’s
+implementation-defined <code>std::normal_distribution</code> sequence, because that sequence is not portable
+(this is why exact candidate-trace equivalence for the TPE search is out of scope; see
+Verification).</p>
+<p><strong>Gimbal-lock RPY interpolation is kept C++-identical (an intentional non-divergence).</strong> The pose
+buffer’s quaternion↔RPY conversions (<code>src/pose_buffer.rs</code>) share tf2 <code>getRPY</code>’s singularity
+at pitch ±90°: the roll/yaw split is ill-conditioned there, giving a possibly-degenerate (but
+always finite, never panicking) interpolated orientation. Guarding it would change behavior where
+the C++ is equally degenerate, so parity wins.</p>
+<blockquote>
+<p>Source: <code>src/derivatives.rs</code> (the <code>h_ang</code> table + FD tests); upstream issue/PR links.</p>
+</blockquote>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="the-wcet-contract"><a class="header" href="#the-wcet-contract">The WCET contract</a></h1>
+<p><code>ndt::align</code> is the one RT-critical function whose worst-case execution time is contracted. The
+contract is stated in its doc comment and is the crate’s real-time centerpiece.</p>
+<h2 id="the-bound"><a class="header" href="#the-bound">The bound</a></h2>
+<ul>
+<li>The outer loop runs <strong>at most <code>params.max_iterations</code></strong> times (a static cap).</li>
+<li>Each iteration does exactly: one f32 cloud transform (<code>O(P)</code>, <code>P</code> = source points), one
+<code>compute_derivatives</code> pass (<code>O(P · K)</code>, <code>K</code> = neighbors per point), and one fixed-size 6×6 SVD
+solve.</li>
+<li><code>K ≤ MAX_NEIGHBORS</code> (the <code>radius_search</code> cap); <code>P</code> must be bounded by the caller (downsample).</li>
+</ul>
+<p>So the align frame is bounded by <code>max_iterations · (O(P·K) + O(1))</code>.</p>
+<h2 id="the-accepted-residual"><a class="header" href="#the-accepted-residual">The accepted residual</a></h2>
+<p>The kd-tree traversal is worst-case <code>O(N_leaves)</code> for adversarial point distributions — an
+<strong>accepted residual</strong>, benign for physical, roughly-uniform voxel maps (see
+<a href="#voxel-grid-and-kd-tree">Voxel grid and kd-tree</a>).</p>
+<h2 id="what-the-path-must-not-do"><a class="header" href="#what-the-path-must-not-do">What the path must not do</a></h2>
+<p>No panic (the crate’s deny-<code>unwrap</code>/<code>expect</code>/<code>panic</code>/<code>indexing</code> lints — see
+<a href="#panic-free-bounded-execution">Panic-free, bounded execution</a>), no blocking, no logging/formatting, no user
+callbacks, and — after warmup — no allocation (<a href="#zero-allocation-guarantees">Zero-allocation guarantees</a>). Only
+fixed-width float math. The <strong>serial</strong> backend is the predictable baseline; the parallel backend is a
+throughput option, not the WCET reference.</p>
+<h2 id="measured"><a class="header" href="#measured">Measured</a></h2>
+<p>The per-frame WCET micro-benchmark <code>examples/wcet_frame.rs</code> measures the tail directly; current
+numbers are in Benchmarking. A
+<code>rust-realtime-review</code> accompanies each engine/align patch.</p>
+<blockquote>
+<p>Source: <code>src/ndt.rs</code> (the <code>align</code> WCET contract), <code>examples/wcet_frame.rs</code>.</p>
+</blockquote>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="zero-allocation-guarantees"><a class="header" href="#zero-allocation-guarantees">Zero-allocation guarantees</a></h1>
+<p>After warmup the align frame allocates <strong>nothing</strong> — a load-bearing property for the real-time story
+and a hard test.</p>
+<h2 id="reused-buffers"><a class="header" href="#reused-buffers">Reused buffers</a></h2>
+<p>All per-frame buffers are pre-reserved and reused, held in the <a href="#matchscratch-and-alignment"><code>MatchScratch</code></a>
+(its <code>AlignWorkspace</code> + last <code>AlignResult</code>):</p>
+<ul>
+<li>the result <code>Vec</code>s (<code>transformation_array</code>, the TP/NVTL trace arrays) — cleared, not reallocated;</li>
+<li><code>trans_cloud</code> (the transformed source) — reused via a <code>mem::take</code>/put-back, no realloc;</li>
+<li><code>neighbor_idx</code> — bounded by <code>MAX_NEIGHBORS</code>;</li>
+<li>the 6×6 SVD is fixed-size and <strong>stack-only</strong>.</li>
+</ul>
+<h2 id="warmup-model"><a class="header" href="#warmup-model">Warmup model</a></h2>
+<p>The buffers grow to their steady-state size on the first align(s); from then on each frame reuses
+them, so no heap traffic occurs on the hot path. Reusing one <code>MatchScratch</code> per task/thread across
+frames is what preserves this — a fresh scratch re-warms.</p>
+<h2 id="the-test"><a class="header" href="#the-test">The test</a></h2>
+<p><code>tests/zero_alloc.rs</code> asserts zero allocations per frame after warmup (an allocator hook counts
+allocations across a steady-state align). It runs on the serial backend — the parallel backend
+allocates its per-worker contribution buffers, so it is explicitly <strong>not</strong> the WCET baseline (see
+<a href="#the-wcet-contract">The WCET contract</a>).</p>
+<blockquote>
+<p>Source: <code>tests/zero_alloc.rs</code>; <code>src/ndt.rs</code> (<code>AlignWorkspace</code>), <code>src/engine.rs</code> (<code>MatchScratch</code>).</p>
+</blockquote>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="the-mt-multi-core-engine"><a class="header" href="#the-mt-multi-core-engine">The <code>mt</code> multi-core engine</a></h1>
+<p>The <code>mt</code> feature is the multi-core <code>no_std</code> (kernel) configuration: the engine stays <code>Sync</code> and
+shareable across cores without <code>std</code> or an external mutex.</p>
+<h2 id="interrupt-safe-cells"><a class="header" href="#interrupt-safe-cells">Interrupt-safe cells</a></h2>
+<p>The interior-mutability cells become <code>awkernel_sync::Mutex&lt;Arc&lt;…&gt;&gt;</code>, whose guards <strong>disable
+interrupts</strong> while held. So every critical section is a few instructions — an <code>Arc</code> refcount bump
+(load) or a pointer swap (store) — <strong>never</strong> an align, a deep clone, or the drop of an old map.</p>
+<h2 id="rcu-without-a-long-lock"><a class="header" href="#rcu-without-a-long-lock">rcu without a long lock</a></h2>
+<p><code>swap_rcu</code> under <code>mt</code> runs the update closure <strong>outside</strong> the lock (it may deep-clone a whole map,
+which must never happen with interrupts disabled) and publishes with an optimistic <code>Arc::ptr_eq</code>
+retry; old snapshots also drop outside the lock. Writers (params setup, map commit) are rare, so it
+converges immediately. See <a href="#concurrency-and-interior-mutability">Concurrency</a>.</p>
+<h2 id="caller-owned-scratch-1"><a class="header" href="#caller-owned-scratch-1">Caller-owned scratch</a></h2>
+<p>There is no engine-owned or thread-local scratch in any configuration. Each task or thread owns a
+<a href="#matchscratch-and-alignment"><code>MatchScratch</code></a> and passes it to every alignment call, so cross-call mutable
+scratch dependencies are explicit in the type system.</p>
+<h2 id="building-it"><a class="header" href="#building-it">Building it</a></h2>
+<p><code>--no-default-features --features mt</code>. <code>awkernel_sync</code> is a pinned git revision (recorded in
+<code>Cargo.lock</code>) with <code>default-features = false</code>, so the <strong>final binary</strong> must enable exactly one
+backend feature (<code>x86</code>/<code>aarch64</code>/<code>rv64</code>/<code>rv32</code> on bare metal, or <code>awkernel_sync/std</code> on a host) —
+otherwise <code>awkernel_sync</code> does not compile. <code>examples/threads_ndt.rs</code> exercises shared-engine usage;
+the host-testable lint gate is <code>--features mt,awkernel_sync/std</code> (see
+Build and test).</p>
+<blockquote>
+<p>Source: <code>src/engine.rs</code> (<code>mt</code> cfg paths), <code>Cargo.toml</code> (<code>mt</code> feature), <code>examples/threads_ndt.rs</code>.</p>
+</blockquote>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="panic-free-bounded-execution"><a class="header" href="#panic-free-bounded-execution">Panic-free, bounded execution</a></h1>
+<p>The crate’s lint hardening, seen through a real-time lens: the align path has no hidden abort, no
+unbounded work, and no allocation.</p>
+<h2 id="no-panic-source"><a class="header" href="#no-panic-source">No panic source</a></h2>
+<p>Non-test code bans <code>unwrap</code> / <code>expect</code> / <code>panic</code> / <code>unreachable</code> / <code>todo</code> / <code>unimplemented</code> and
+<code>indexing_slicing</code> / <code>string_slice</code> — so there is no implicit panic (which would abort or unwind) on
+the RT path. Fallible operations return <code>Result</code>/<code>Option</code> and are handled; genuinely-dynamic
+indexing uses <code>.get()</code>/iterators.</p>
+<h2 id="no-silent-overflow"><a class="header" href="#no-silent-overflow">No silent overflow</a></h2>
+<p><code>[profile.release] overflow-checks = true</code> makes an integer overflow a <strong>panic</strong>, so integer
+arithmetic must be explicit <code>checked_*</code> / <code>saturating_*</code> / <code>wrapping_*</code> — never bare <code>+</code>/<code>-</code>/<code>*</code>.
+Float math (which does not panic) uses a scoped, documented allowance in the numeric kernels only.
+Lossy <code>as</code> casts are banned in favor of <code>TryFrom</code>; a <code>Result</code> is never discarded with <code>let _</code>.</p>
+<p><strong>Standalone-consumer caveat:</strong> <code>overflow-checks = true</code> lives in the <strong>workspace root</strong> manifest
+(the node crate) and covers both members for every in-tree build (colcon/Corrosion and
+<code>cd engine &amp;&amp; cargo build --release</code> alike). Cargo profiles do <strong>not</strong> travel with a dependency,
+however — a consumer that imports the engine crate from outside this workspace (e.g. the <code>no_std</code>
+kernel repo) gets <strong>its own</strong> profile, so that final binary must re-declare
+<code>overflow-checks = true</code> (and re-apply the lint gates in its CI) to keep this guarantee. See the
+note in <code>Cargo.toml</code>.</p>
+<h2 id="bounded-and-non-blocking"><a class="header" href="#bounded-and-non-blocking">Bounded and non-blocking</a></h2>
+<p>On the align path: loops are statically bounded (<code>max_iterations</code>, <code>MAX_NEIGHBORS</code>), buffers are
+pre-sized and reused (<a href="#zero-allocation-guarantees">zero-alloc</a>), and there is no blocking, no logging/formatting,
+and no user callback. Together these give the <a href="#the-wcet-contract">WCET contract</a> its teeth.</p>
+<h2 id="review"><a class="header" href="#review">Review</a></h2>
+<p>A <code>rust-realtime-review</code> accompanies each engine/align patch to keep these properties from
+regressing; the lints themselves are enforced in CI (see
+Lint gates and suppression policy).</p>
+<blockquote>
+<p>Source: <code>Cargo.toml</code> <code>[lints]</code> / <code>[profile.release]</code>; <code>src/ndt.rs</code>.</p>
+</blockquote>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="module-index"><a class="header" href="#module-index">Module index</a></h1>
+<p>One line per Rust source module in the engine crate (<code>realtime_ndt_scan_matcher/src/</code>). The C ABI
+and ROS node modules live in the node crate and are indexed in its book.</p>
+<h2 id="core-algorithm-portable-no_std--alloc"><a class="header" href="#core-algorithm-portable-no_std--alloc">Core algorithm (portable, <code>no_std</code> + <code>alloc</code>)</a></h2>
+<ul>
+<li><code>lib.rs</code> — crate root, feature gating, <code>nalgebra</code> re-export, and the <code>init_thread_pool</code> /
+rayon-worker-affinity helpers.</li>
+<li><code>engine.rs</code> — persistent <code>NdtEngine</code> handle, <code>MatchScratch</code>, config/map/align API.</li>
+<li><code>ndt.rs</code> — <code>align</code>, derivative assembly, <code>NdtParams</code> / <code>AlignResult</code> / <code>AlignWorkspace</code>.</li>
+<li><code>derivatives.rs</code> — angular + per-point score/gradient/Hessian kernels.</li>
+<li><code>voxel_grid.rs</code> / <code>kdtree.rs</code> — target voxel map + spatial index (<code>kdtree</code> is private).</li>
+<li><code>convergence.rs</code> — the pure convergence verdict.</li>
+<li><code>covariance.rs</code> / <code>cov_estimate.rs</code> — pose-covariance math + the four estimation modes.</li>
+<li><code>transform.rs</code> — SE3 transforms, Gauss constants, euler↔matrix.</li>
+<li><code>tpe.rs</code> — Tree-Structured Parzen Estimator (the align-service pose search).</li>
+<li><code>pose_buffer.rs</code> — time-ordered pose interpolation buffer (<code>SmartPoseBuffer</code> port).</li>
+<li><code>helper.rs</code> — pure C++ helper ports (<code>rotate_covariance</code>, <code>count_oscillation</code>).</li>
+</ul>
+<h2 id="ports--orchestration-portable"><a class="header" href="#ports--orchestration-portable">Ports &amp; orchestration (portable)</a></h2>
+<ul>
+<li><code>host.rs</code> — the <code>MapSource</code> / <code>OutputSink</code> / <code>Clock</code> / <code>Host</code> traits + result types.</li>
+<li><code>scan_matcher.rs</code> — <code>ScanMatcher</code> over the <code>Host</code> ports (+ <code>apply_map_update</code>).</li>
+</ul>
+<h2 id="tooling--fixtures-std-only--opt-in"><a class="header" href="#tooling--fixtures-std-only--opt-in">Tooling &amp; fixtures (<code>std</code>-only / opt-in)</a></h2>
+<ul>
+<li><code>capture.rs</code> — real-drive input capture (the <code>NDT_CAPTURE_DIR</code> sidecar format); <code>std</code> feature.</li>
+<li><code>fixture.rs</code> — frozen WCET benchmark fixtures (capture-once, replay-everywhere); <code>std</code> feature.</li>
+<li><code>wcet.rs</code> — deterministic algorithmic-cost counters for the WCET analysis
+(<code>plan/ndt_wcet.md</code>); <code>wcet-count</code> feature.</li>
+</ul>
+<blockquote>
+<p>Source: the crate <code>src/</code> module docs.</p>
+</blockquote>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr-ef4e11c1.min.js"></script>
+        <script src="mark-09e88c2c.min.js"></script>
+        <script src="searcher-09f2665d.js"></script>
+
+        <script src="clipboard-1626706a.min.js"></script>
+        <script src="highlight-abc7f01d.js"></script>
+        <script src="book-609e4cb8.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="mermaid-eefea253.min.js"></script>
+        <script src="mermaid-init-ccf746f1.js"></script>
+
+        <script>
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+
+
+    </div>
+    </body>
+</html>
