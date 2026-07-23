@@ -1,8 +1,8 @@
 //! Counter-guided worst-input search.
 //!
-//! Seeded hill-climb over a parameterized input generator, with the **deterministic cost
-//! counters** as fitness — platform-independent, so a worst input found here is a worst input
-//! everywhere (and, by bit-exactness, for the C++ engine too). Requires `--features wcet-count`.
+//! Seeded hill-climb over a parameterized input generator, with deterministic Rust cost counters
+//! as fitness. Counter fitness avoids wall-time noise, but the selected inputs depend on the
+//! engine implementation and counter definitions. Requires `--features wcet-count`.
 //!
 //! Fitness is the lexicographic counter vector `(iterations, sum_neighbors, kd_nodes_visited)`:
 //! the outer-loop count dominates, then the kernel-evaluation count, then the tree-traversal
@@ -19,7 +19,9 @@
 //! (default `OUT_DIR`: the crate's own `bench/fixtures/`, via `CARGO_MANIFEST_DIR`).
 //! Env: `WCET_SEARCH_GENS` (default 20),
 //! `WCET_SEARCH_POP` (default 6), `WCET_SEARCH_TOPK` (default 2), `WCET_SEARCH_SEED`.
-//! Deterministic for a fixed seed. Emits `search_00.ndtfix`, `search_01.ndtfix`, ….
+//! Deterministic for a fixed engine, build, and seed. Emits `search_00.ndtfix`,
+//! `search_01.ndtfix`, … . These are current-engine search results, not the paper's frozen inputs;
+//! use `gen_fixtures.sh` to reproduce the latter.
 //!
 //! Ablation controls (the defaults leave the original behavior
 //! byte-identical):
@@ -50,212 +52,14 @@
 
 use std::path::{Path, PathBuf};
 
-use nalgebra::Matrix4;
 use realtime_ndt_scan_matcher::fixture::Fixture;
-use realtime_ndt_scan_matcher::ndt::{AlignResult, AlignWorkspace, NdtParams, align};
+use realtime_ndt_scan_matcher::ndt::{AlignResult, AlignWorkspace, align};
 use realtime_ndt_scan_matcher::voxel_grid::VoxelGridMap;
 
-/// Fixed source point count: `P` is the node's responsibility (downsample cap), not a search
-/// freedom — searching it would trivially saturate at the cap and hide the interesting terms.
-const SRC_POINTS: usize = 2000;
-const RES: f32 = 2.0;
-const MAX_ITER: i32 = 30;
+#[path = "support/wcet_search_gen.rs"]
+mod wcet_search_gen;
 
-/// Deterministic LCG (no rand dependency).
-#[derive(Clone)]
-struct Lcg(u64);
-impl Lcg {
-    fn next_u64(&mut self) -> u64 {
-        self.0 = self
-            .0
-            .wrapping_mul(6_364_136_223_846_793_005)
-            .wrapping_add(1_442_695_040_888_963_407);
-        self.0
-    }
-    fn next_f32(&mut self) -> f32 {
-        ((self.next_u64() >> 40) as f32) / ((1_u64 << 24) as f32)
-    }
-    fn range_f32(&mut self, lo: f32, hi: f32) -> f32 {
-        lo + (hi - lo) * self.next_f32()
-    }
-    fn range_u(&mut self, lo: u64, hi_incl: u64) -> u64 {
-        lo + self.next_u64() % (hi_incl - lo + 1)
-    }
-}
-
-/// Search genome: the input-generator parameters the hill-climb mutates.
-#[derive(Clone, Debug)]
-struct Genome {
-    /// Overlapping map tiles (1..=8): leaf multiplicity → per-point `K`.
-    n_tiles: u64,
-    /// 2×2×2-voxel blocks per axis (3..=10): map extent → kd-tree size/depth.
-    blocks: u64,
-    /// Corner-hug tightness (0.002..0.02 m): how hard centroids crowd the shared corners.
-    hug: f32,
-    /// Roughness blend (0..1): 0 = pure corner-hug lattice, 1 = fully random surface.
-    rough: f32,
-    /// Fraction of source points sitting on block corners (max-K queries); rest rove randomly.
-    corner_frac: f32,
-    /// Initial-guess translation offset (m).
-    guess_dx: f32,
-    guess_dy: f32,
-    /// `trans_epsilon = 10^eps_log` (-10..-2): convergence threshold.
-    eps_log: f32,
-    /// Point-stream seed (orderings / jitter).
-    seed: u64,
-}
-
-impl Genome {
-    fn seed_population(rng: &mut Lcg, pop: usize) -> Vec<Genome> {
-        let mut v = Vec::with_capacity(pop);
-        // Seed 0: the hand-built compound worst case (dense_neighbors-like).
-        v.push(Genome {
-            n_tiles: 8,
-            blocks: 6,
-            hug: 0.006,
-            rough: 0.0,
-            corner_frac: 1.0,
-            guess_dx: 0.08,
-            guess_dy: -0.06,
-            eps_log: -10.0,
-            seed: 1,
-        });
-        // Seed 1: the rough non-converging surface (max_iterations-like).
-        v.push(Genome {
-            n_tiles: 1,
-            blocks: 10,
-            hug: 0.01,
-            rough: 1.0,
-            corner_frac: 0.0,
-            guess_dx: 0.7,
-            guess_dy: 0.5,
-            eps_log: -10.0,
-            seed: 2,
-        });
-        // Rest: random.
-        while v.len() < pop {
-            v.push(Genome::random(rng));
-        }
-        v
-    }
-
-    /// A uniformly random genome (used by seeding and by the random-search baseline).
-    fn random(rng: &mut Lcg) -> Genome {
-        Genome {
-            n_tiles: rng.range_u(1, 8),
-            blocks: rng.range_u(3, 10),
-            hug: rng.range_f32(0.002, 0.02),
-            rough: rng.next_f32(),
-            corner_frac: rng.next_f32(),
-            guess_dx: rng.range_f32(-1.0, 1.0),
-            guess_dy: rng.range_f32(-1.0, 1.0),
-            eps_log: rng.range_f32(-10.0, -2.0),
-            seed: rng.next_u64(),
-        }
-    }
-
-    /// Mutate 1–2 fields (hill-climb neighborhood).
-    fn mutate(&self, rng: &mut Lcg) -> Genome {
-        let mut g = self.clone();
-        for _ in 0..rng.range_u(1, 2) {
-            match rng.range_u(0, 8) {
-                0 => g.n_tiles = rng.range_u(1, 8),
-                1 => g.blocks = rng.range_u(3, 10),
-                2 => g.hug = (g.hug * rng.range_f32(0.5, 2.0)).clamp(0.002, 0.02),
-                3 => g.rough = (g.rough + rng.range_f32(-0.3, 0.3)).clamp(0.0, 1.0),
-                4 => g.corner_frac = (g.corner_frac + rng.range_f32(-0.3, 0.3)).clamp(0.0, 1.0),
-                5 => g.guess_dx = (g.guess_dx + rng.range_f32(-0.3, 0.3)).clamp(-1.0, 1.0),
-                6 => g.guess_dy = (g.guess_dy + rng.range_f32(-0.3, 0.3)).clamp(-1.0, 1.0),
-                7 => g.eps_log = (g.eps_log + rng.range_f32(-2.0, 2.0)).clamp(-10.0, -2.0),
-                _ => g.seed = rng.next_u64(),
-            }
-        }
-        g
-    }
-
-    /// Materialize the genome into a frozen fixture (deterministic for a fixed genome).
-    fn build(&self) -> Fixture {
-        let mut rng = Lcg(self.seed | 1);
-        let blocks = self.blocks as i32;
-        let mut tiles = Vec::with_capacity(self.n_tiles as usize);
-        for t in 0..self.n_tiles {
-            let jt = self.hug * (0.6 + t as f32 * 0.25);
-            let mut tile = Vec::new();
-            for bx in 0..blocks {
-                for by in 0..blocks {
-                    let kx = (2 * bx + 1) as f32 * RES;
-                    let ky = (2 * by + 1) as f32 * RES;
-                    let kz = RES;
-                    for dx in 0..2_i32 {
-                        for dy in 0..2_i32 {
-                            for dz in 0..2_i32 {
-                                let sx = if dx == 0 { -1.0 } else { 1.0 };
-                                let sy = if dy == 0 { -1.0 } else { 1.0 };
-                                let sz = if dz == 0 { -1.0 } else { 1.0 };
-                                for i in 0..8 {
-                                    let e = jt + i as f32 * 0.002;
-                                    // Corner-hug position, blended toward a random in-voxel
-                                    // position by `rough`.
-                                    let hug_p = [
-                                        kx + sx * e,
-                                        ky + sy * (e * 0.8 + 0.003),
-                                        kz + sz * (e * 0.6 + 0.006),
-                                    ];
-                                    let rnd_p = [
-                                        kx + sx * rng.range_f32(0.05, 1.95),
-                                        ky + sy * rng.range_f32(0.05, 1.95),
-                                        kz + sz * rng.range_f32(0.05, 1.95),
-                                    ];
-                                    tile.push([
-                                        hug_p[0] + (rnd_p[0] - hug_p[0]) * self.rough,
-                                        hug_p[1] + (rnd_p[1] - hug_p[1]) * self.rough,
-                                        hug_p[2] + (rnd_p[2] - hug_p[2]) * self.rough,
-                                    ]);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            tiles.push(tile);
-        }
-        // Source: corner-sitters (max-K) + random rovers (kd traversal), fixed P.
-        let extent = (2 * blocks) as f32 * RES;
-        let n_corner = ((SRC_POINTS as f32) * self.corner_frac) as usize;
-        let mut src = Vec::with_capacity(SRC_POINTS);
-        for i in 0..SRC_POINTS {
-            if i < n_corner {
-                let k = (i as i32) % (blocks * blocks);
-                let kx = (2 * (k % blocks) + 1) as f32 * RES;
-                let ky = (2 * (k / blocks) + 1) as f32 * RES;
-                src.push([kx, ky, RES]);
-            } else {
-                src.push([
-                    rng.next_f32() * extent,
-                    rng.next_f32() * extent,
-                    rng.next_f32() * 2.0 * RES,
-                ]);
-            }
-        }
-        let mut guess = Matrix4::<f32>::identity();
-        guess[(0, 3)] = self.guess_dx;
-        guess[(1, 3)] = self.guess_dy;
-        Fixture {
-            tiles,
-            source: src,
-            guess,
-            params: NdtParams {
-                trans_epsilon: f64::from(10.0_f32.powf(self.eps_log)),
-                step_size: 0.1,
-                resolution: f64::from(RES),
-                max_iterations: MAX_ITER,
-                outlier_ratio: 0.55,
-                regularization: None,
-                num_threads: 1,
-            },
-        }
-    }
-}
+use wcet_search_gen::{Genome, Lcg};
 
 /// Lexicographic fitness: `(iterations, sum_neighbors, kd_nodes_visited)`.
 type Fitness = (u64, u64, u64);

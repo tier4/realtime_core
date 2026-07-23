@@ -17,6 +17,7 @@
     clippy::arithmetic_side_effects,
     clippy::indexing_slicing,
     clippy::unwrap_used,
+    clippy::expect_used,
     clippy::allow_attributes,
     reason = "test code"
 )]
@@ -78,9 +79,10 @@ proptest! {
             regularization: None,
             num_threads: 1, // serial WCET baseline
         };
-        let mut ws = AlignWorkspace::try_with_capacity(2_000).expect("reserve workspace");
-        let mut out = AlignResult::default();
-        align(&map, &source, &guess, &params, &mut ws, &mut out);
+        let mut ws = AlignWorkspace::try_with_capacity(source.len()).expect("reserve workspace");
+        let iteration_capacity = usize::try_from(max_iterations).expect("positive iteration limit");
+        let mut out = AlignResult::try_with_capacity(iteration_capacity).expect("reserve result");
+        align(&map, &source, &guess, &params, &mut ws, &mut out).expect("align test input");
         let c = out.counters;
 
         // N_iter ≤ max_iterations, and one derivative pass per iteration plus the initial pass.
@@ -133,11 +135,11 @@ fn parallel_counters_match_serial() {
         regularization: None,
         num_threads: threads,
     };
-    let mut ws = AlignWorkspace::try_with_capacity(2_000).expect("reserve workspace");
-    let mut serial = AlignResult::default();
-    align(&map, &source, &guess, &mk(1), &mut ws, &mut serial);
-    let mut parallel = AlignResult::default();
-    align(&map, &source, &guess, &mk(4), &mut ws, &mut parallel);
+    let mut ws = AlignWorkspace::try_with_capacity(source.len()).expect("reserve workspace");
+    let mut serial = AlignResult::try_with_capacity(8).expect("reserve serial result");
+    align(&map, &source, &guess, &mk(1), &mut ws, &mut serial).expect("serial align");
+    let mut parallel = AlignResult::try_with_capacity(8).expect("reserve parallel result");
+    align(&map, &source, &guess, &mk(4), &mut ws, &mut parallel).expect("parallel align");
 
     assert_eq!(serial.counters, parallel.counters);
     assert_eq!(serial.iteration_num, parallel.iteration_num);
