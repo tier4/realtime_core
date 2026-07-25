@@ -9,8 +9,9 @@
 //! (`tests/wcet_bounds.rs`).
 //!
 //! Only compiled under the `wcet-count` feature; the shipping hot path carries zero instrumentation
-//! cost when the feature is off. The counters cover the **serial** backend (the WCET baseline) —
-//! the `parallel` reduction does not accumulate them.
+//! cost when the feature is off. Both backends accumulate the counters: the `parallel` backend folds
+//! them over the point-index-ordered contributions *after* the rayon collect (never inside the
+//! reduction), so its counter values are bit-identical to the serial backend — the WCET baseline.
 
 /// Algorithmic-cost counters for one [`crate::ndt::align`] call (reset at the start of each align).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
