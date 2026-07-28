@@ -77,9 +77,9 @@ required-features = ["wcet-count"]
 #   realtime_localization_util — pose_buffer + tpe + transform (C++ autoware_localization_util).
 #   realtime_kdtree            — the bounded radius-search kd-tree.
 #   realtime_port_instrument   — the WCET counters/trace ABI (only with `wcet-count`/`wcet-trace`).
-realtime_localization_util = { path = "../realtime_localization_util" }
-realtime_kdtree = { path = "../realtime_kdtree" }
-realtime_port_instrument = { path = "../realtime_port_instrument", optional = true }
+realtime_localization_util = { version = "0.1.0", path = "../realtime_localization_util" }
+realtime_kdtree = { version = "0.1.0", path = "../realtime_kdtree" }
+realtime_port_instrument = { version = "0.1.0", path = "../realtime_port_instrument", optional = true }
 # Pure-Rust libm: provides sqrt in no_std (and matches C++ std::sqrt — sqrt is IEEE
 # correctly-rounded — so the differential oracle stays exact).
 libm = "0.2"
