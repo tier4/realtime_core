@@ -84,24 +84,27 @@ pub mod helper;
 // Portable node orchestration: the `Host` port traits + the `no_std` scan matcher over the engine
 // (reusable on ROS / bare-metal / the Tokio example).
 pub mod host;
-mod kdtree;
+// Bounded-radius-search kd-tree, now the `realtime_kdtree` workspace crate; the alias keeps the
+// crate-internal `crate::kdtree::…` paths (the module was always private here).
+use realtime_kdtree as kdtree;
 pub mod ndt;
-// no_std port of autoware_localization_util::SmartPoseBuffer (time-ordered pose interpolation buffer);
-// reused by the node crate's Rust-owned pose buffers.
-pub mod pose_buffer;
 pub mod scan_matcher;
-pub mod tpe;
-pub mod transform;
 pub mod voxel_grid;
+// Shared localization utilities, now the `realtime_localization_util` workspace crate (the Rust
+// counterpart of C++ `autoware_localization_util`): the SmartPoseBuffer port (time-ordered pose
+// interpolation buffer, reused by the node crate's Rust-owned pose buffers), the TPE pose-search
+// sampler, and the SE3 transform kernels. Re-exported so the public module paths are unchanged.
+pub use realtime_localization_util::{pose_buffer, tpe, transform};
 // Real-drive input capture (the NDT_CAPTURE_DIR sidecar format); std-only file IO.
 #[cfg(feature = "std")]
 pub mod capture;
 // Frozen WCET benchmark fixtures (capture-once, replay-everywhere); std-only file IO.
 #[cfg(feature = "std")]
 pub mod fixture;
-// Deterministic algorithmic-cost counters for the WCET analysis; opt-in.
+// Deterministic algorithmic-cost counters for the WCET analysis, now the
+// `realtime_port_instrument` workspace crate; opt-in, re-exported under the original module path.
 #[cfg(feature = "wcet-count")]
-pub mod wcet;
+pub use realtime_port_instrument as wcet;
 
 /// Re-export of the exact [`nalgebra`] version this crate is built against.
 ///

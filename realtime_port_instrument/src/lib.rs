@@ -3,17 +3,22 @@
 //! The engine's frame time decomposes as
 //! `T ≤ N_iter × [Σ_p (T_search(p) + K(p)·T_kernel) + T_solve]`, so these counters capture the only
 //! data-dependent cost drivers: derivative passes (≤ iterations + 1), points processed, neighbors
-//! collected (K ≤ [`crate::ndt::MAX_NEIGHBORS`] per point per pass), and kd-tree nodes visited.
+//! collected (K ≤ `MAX_NEIGHBORS` in the engine crate's `ndt` module, per point per pass), and
+//! kd-tree nodes visited.
 //! Being platform-independent and reproducible, they are the worst-input **search fitness** (far
 //! more stable than wall time) and the machine-checked link to the analytic bound
-//! (`tests/wcet_bounds.rs`).
+//! (the engine crate's `tests/wcet_bounds.rs`).
 //!
-//! Only compiled under the `wcet-count` feature; the shipping hot path carries zero instrumentation
+//! Only compiled under the `count` feature (forwarded from the engine crate's `wcet-count`); the
+//! shipping hot path carries zero instrumentation
 //! cost when the feature is off. Both backends accumulate the counters: the `parallel` backend folds
 //! them over the point-index-ordered contributions *after* the rayon collect (never inside the
 //! reduction), so its counter values are bit-identical to the serial backend — the WCET baseline.
 
-/// Algorithmic-cost counters for one [`crate::ndt::align`] call (reset at the start of each align).
+#![no_std]
+
+/// Algorithmic-cost counters for one NDT `align` call (reset at the start of each align).
+#[cfg(feature = "count")]
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct WcetCounters {
     /// Derivative computations performed: 1 (initial guess) + 1 per Newton iteration.
@@ -31,6 +36,7 @@ pub struct WcetCounters {
     pub max_neighbors: u64,
 }
 
+#[cfg(feature = "count")]
 impl WcetCounters {
     /// All-zero counters for preallocated alignment workspaces.
     #[must_use]
@@ -48,22 +54,22 @@ impl WcetCounters {
 /// 64-bit FNV-1a offset basis for numeric diagnostics. Shared with the C++ analysis
 /// build (`bench/traced/include/ndt_trace.hpp`); the two implementations are bit-identical and
 /// covered by the same test vectors.
-#[cfg(feature = "wcet-trace")]
+#[cfg(feature = "trace")]
 pub const FNV_OFFSET: u64 = 14_695_981_039_346_656_037;
 /// 64-bit FNV-1a prime.
-#[cfg(feature = "wcet-trace")]
+#[cfg(feature = "trace")]
 pub const FNV_PRIME: u64 = 1_099_511_628_211;
 /// Maximum derivative passes a trace stores (`max_iterations` caps at 30 in production, so 40
 /// leaves margin; `AlignTrace::len` still counts every pass even past the storage cap).
-#[cfg(feature = "wcet-trace")]
+#[cfg(feature = "trace")]
 pub const MAX_TRACE_PASSES: usize = 40;
 
 /// SHA-256 digest width used by the cross-language trace ABI.
-#[cfg(feature = "wcet-trace")]
+#[cfg(feature = "trace")]
 pub const TRACE_DIGEST_BYTES: usize = 32;
 
 /// Fold one `u64` (little-endian bytes) into a 64-bit FNV-1a state.
-#[cfg(feature = "wcet-trace")]
+#[cfg(feature = "trace")]
 #[must_use]
 pub fn fnv1a_u64(mut h: u64, v: u64) -> u64 {
     let mut x = v;
@@ -77,7 +83,7 @@ pub fn fnv1a_u64(mut h: u64, v: u64) -> u64 {
 
 /// One derivative pass of the analysis trace: structural work, canonical shape and payload
 /// digests, engine-own kd work, and pass-final numeric diagnostics.
-#[cfg(feature = "wcet-trace")]
+#[cfg(feature = "trace")]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct PassTrace {
     /// Source points processed in this pass.
@@ -98,7 +104,7 @@ pub struct PassTrace {
     pub hess_hash: u64,
 }
 
-#[cfg(feature = "wcet-trace")]
+#[cfg(feature = "trace")]
 impl PassTrace {
     /// Empty pass record (numeric diagnostic hashes start at the FNV offset basis).
     #[must_use]
@@ -116,7 +122,7 @@ impl PassTrace {
     }
 }
 
-#[cfg(feature = "wcet-trace")]
+#[cfg(feature = "trace")]
 impl Default for PassTrace {
     fn default() -> Self {
         Self::new()
@@ -124,7 +130,7 @@ impl Default for PassTrace {
 }
 
 /// Per-align trace: one [`PassTrace`] per derivative pass, in pass order.
-#[cfg(feature = "wcet-trace")]
+#[cfg(feature = "trace")]
 #[derive(Clone, Copy, Debug)]
 pub struct AlignTrace {
     /// Total passes recorded (counts every pass, even beyond [`MAX_TRACE_PASSES`]).
@@ -135,7 +141,7 @@ pub struct AlignTrace {
     pub passes: [PassTrace; MAX_TRACE_PASSES],
 }
 
-#[cfg(feature = "wcet-trace")]
+#[cfg(feature = "trace")]
 impl AlignTrace {
     /// Empty trace.
     #[must_use]
@@ -156,14 +162,14 @@ impl AlignTrace {
     }
 }
 
-#[cfg(feature = "wcet-trace")]
+#[cfg(feature = "trace")]
 impl Default for AlignTrace {
     fn default() -> Self {
         Self::new()
     }
 }
 
-#[cfg(all(test, feature = "wcet-trace"))]
+#[cfg(all(test, feature = "trace"))]
 #[allow(
     clippy::unwrap_used,
     clippy::as_conversions,

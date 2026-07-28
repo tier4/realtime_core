@@ -1,6 +1,11 @@
 [workspace]
 resolver = "3"
-members = ["realtime_ndt_scan_matcher"]
+members = [
+  "realtime_kdtree",
+  "realtime_localization_util",
+  "realtime_ndt_scan_matcher",
+  "realtime_port_instrument",
+]
 
 # rust-hardening gates shared by every workspace member (see .claude/skills/rust-hardening).
 # Mirrors autoware_ndt_scan_matcher_rs/Cargo.toml so the crate lints identically here and upstream.

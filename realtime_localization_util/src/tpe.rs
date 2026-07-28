@@ -131,7 +131,7 @@ impl SplitMix64 {
 /// # Examples
 ///
 /// ```
-/// use realtime_ndt_scan_matcher::tpe::{Direction, TreeStructuredParzenEstimator, Trial};
+/// use realtime_localization_util::tpe::{Direction, TreeStructuredParzenEstimator, Trial};
 ///
 /// // 5 prior dims (x, y, z, roll, pitch); yaw is sampled uniformly.
 /// let mean = [0.0; 5];
@@ -142,7 +142,7 @@ impl SplitMix64 {
 /// let candidate = tpe.get_next_input()?;
 /// tpe.add_trial(Trial { input: candidate, score: 1.5 })?;
 /// assert_eq!(tpe.trials_len(), 1);
-/// # Ok::<(), realtime_ndt_scan_matcher::tpe::Error>(())
+/// # Ok::<(), realtime_localization_util::tpe::Error>(())
 /// ```
 #[derive(Clone, Debug)]
 pub struct TreeStructuredParzenEstimator {

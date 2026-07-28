@@ -1,0 +1,22 @@
+[package]
+name = "realtime_port_instrument"
+version = "0.1.0"
+edition = "2024"
+authors = ["Yuuki Takano", "TIER IV, Inc."]
+description = "Deterministic algorithmic-cost counters and the cross-language FNV/SHA trace ABI used to instrument C++-to-Rust real-time ports (WCET analysis). no_std, allocation-free."
+license = "MIT OR Apache-2.0"
+
+[features]
+# `count`: the algorithmic-cost counters (forwarded from the NDT engine crate's `wcet-count`).
+count = []
+# `trace`: analysis-only per-pass trace records for cross-language work-shape conformance
+# (forwarded from the NDT engine crate's `wcet-trace`). The digests themselves are produced by
+# the instrumented crate, so no sha2 dependency is needed here outside the shared-vector tests.
+trace = ["count"]
+
+# Shared C++/Rust SHA-256 test vectors for the `trace` ABI (tests only; never linked into builds).
+[dev-dependencies]
+sha2 = { version = "0.10", default-features = false }
+
+[lints]
+workspace = true

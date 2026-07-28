@@ -2,9 +2,13 @@
 //! NDT voxel-grid map. Tree construction is control-plane work and may allocate and recurse;
 //! queries use a fixed iterative stack. `no_std` + `alloc`; no external dependency.
 
+#![no_std]
+
 // Numeric/index kernel: bounded recursion depth (~log2 N) and indexing into fixed `[f32; 3]` /
 // the internal node array; distances are computed in f64 via `f64::from` (no lossy casts).
 // Suppressions are scoped per-function (no module-wide `#![allow]`); rationale per the comment above.
+
+extern crate alloc;
 
 use alloc::vec::Vec;
 
@@ -122,7 +126,7 @@ impl KdTree {
 
     /// [`Self::radius_search`] that also returns the number of tree nodes visited — the
     /// deterministic traversal-cost counter for the WCET analysis.
-    #[cfg(feature = "wcet-count")]
+    #[cfg(feature = "count")]
     /// # Errors
     /// Returns an explicit error when allocation, arithmetic, numeric input, or a declared runtime bound fails.
     pub fn radius_search_counted(
@@ -404,7 +408,7 @@ mod tests {
         assert_eq!(outcome.nodes_visited, 0);
     }
 
-    #[cfg(feature = "wcet-count")]
+    #[cfg(feature = "count")]
     #[test]
     fn counted_search_reports_distance_tests() {
         let tree = KdTree::try_build(&[[0.0, 0.0, 0.0]]).expect("build kd-tree");

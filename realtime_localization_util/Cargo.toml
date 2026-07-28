@@ -1,0 +1,16 @@
+[package]
+name = "realtime_localization_util"
+version = "0.1.0"
+edition = "2024"
+authors = ["Yuuki Takano", "TIER IV, Inc."]
+description = "Pure-Rust, ROS-free, no_std-capable localization utilities ported from Autoware's autoware_localization_util (SmartPoseBuffer, TPE pose search) plus the NDT SE3 transform kernels."
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+# Pure-Rust libm: sqrt/log/trig in no_std, matching the C++ std math the ports mirror.
+libm = "0.2"
+# Linear algebra for the pose/transform kernels. no_std + libm; fixed-size matrices need no alloc.
+nalgebra = { version = "0.33", default-features = false, features = ["libm"] }
+
+[lints]
+workspace = true

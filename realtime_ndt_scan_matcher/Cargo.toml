@@ -41,17 +41,25 @@ parallel = ["std", "dep:rayon", "dep:libc"]
 # kd-tree nodes visited) — the worst-input search fitness of plan/ndt_wcet.md. Both backends produce
 # them; the parallel backend folds the counters over the point-index-ordered contributions after the
 # rayon collect, so its values are bit-identical to the serial WCET baseline. Compiled out entirely
-# when the feature is off, so the shipping hot path is untouched. No extra dependencies.
-wcet-count = []
+# when the feature is off, so the shipping hot path is untouched. The counters themselves live in
+# the `realtime_port_instrument` crate (re-exported as the `wcet` module); the kd-tree's counted
+# search lives in `realtime_kdtree`.
+wcet-count = [
+  "dep:realtime_port_instrument",
+  "realtime_port_instrument/count",
+  "realtime_kdtree/count",
+]
 # `wcet-trace`: analysis-only per-pass records for cross-language work-shape conformance.
 # Canonical leaf ids and complete kernel payloads (mean + regularized inverse covariance) use
 # SHA-256; pass-final score/gradient/Hessian diagnostics retain their compact bit hashes.
-# SERIAL backend only (the parallel backend poisons the ordered trace).
-wcet-trace = ["wcet-count", "dep:sha2"]
-# Benchmark-only kd-tree ablations. These reconstruct pre-optimization hot-path components for
-# matched-binary timing diagnosis; normal and `wcet-count` builds leave them disabled.
-bench-kd-force-count = []
-bench-kd-stop-at-cap = []
+# SERIAL backend only (the parallel backend poisons the ordered trace). The record types live in
+# `realtime_port_instrument`; the SHA-256 digesting stays here (sha2 is this crate's dependency).
+wcet-trace = ["wcet-count", "realtime_port_instrument/trace", "dep:sha2"]
+# Benchmark-only kd-tree ablations (forwarded to `realtime_kdtree`). These reconstruct
+# pre-optimization hot-path components for matched-binary timing diagnosis; normal and
+# `wcet-count` builds leave them disabled.
+bench-kd-force-count = ["realtime_kdtree/bench-kd-force-count"]
+bench-kd-stop-at-cap = ["realtime_kdtree/bench-kd-stop-at-cap"]
 
 # The worst-input searches need the cost counters as their fitness; without the feature the
 # examples have no meaningful fitness, so they are not built at all.
@@ -64,6 +72,14 @@ name = "wcet_search_legal"
 required-features = ["wcet-count"]
 
 [dependencies]
+# Sibling workspace crates extracted from this crate (pure code moves; the modules are re-exported
+# under their original paths in lib.rs, so consumers are unaffected):
+#   realtime_localization_util — pose_buffer + tpe + transform (C++ autoware_localization_util).
+#   realtime_kdtree            — the bounded radius-search kd-tree.
+#   realtime_port_instrument   — the WCET counters/trace ABI (only with `wcet-count`/`wcet-trace`).
+realtime_localization_util = { path = "../realtime_localization_util" }
+realtime_kdtree = { path = "../realtime_kdtree" }
+realtime_port_instrument = { path = "../realtime_port_instrument", optional = true }
 # Pure-Rust libm: provides sqrt in no_std (and matches C++ std::sqrt — sqrt is IEEE
 # correctly-rounded — so the differential oracle stays exact).
 libm = "0.2"

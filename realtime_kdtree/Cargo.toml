@@ -1,0 +1,19 @@
+[package]
+name = "realtime_kdtree"
+version = "0.1.0"
+edition = "2024"
+authors = ["Yuuki Takano", "TIER IV, Inc."]
+description = "Static 3-D kd-tree with bounded, iterative radius search (a pcl::KdTreeFLANN replacement). no_std + alloc; no dependencies."
+license = "MIT OR Apache-2.0"
+
+[features]
+# `count`: the deterministic traversal-cost counter API (`radius_search_counted`) for the WCET
+# analysis. Forwarded from the NDT engine crate's `wcet-count` feature. No extra dependencies.
+count = []
+# Benchmark-only ablations reconstructing pre-optimization hot-path behavior for matched-binary
+# timing diagnosis; normal and `count` builds leave them disabled.
+bench-kd-force-count = []
+bench-kd-stop-at-cap = []
+
+[lints]
+workspace = true
