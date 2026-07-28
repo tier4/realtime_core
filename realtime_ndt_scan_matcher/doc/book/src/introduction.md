@@ -11,6 +11,13 @@ relative to that crate root. The C ABI and the ROS 2 node — the FFI boundary, 
 ROS node shell, and the C++→Rust symbol map — live in a separate ROS node crate that consumes this
 engine as a dependency; that integration is out of scope here.
 
+The engine crate sits in the `realtime_core` workspace next to three sibling crates it extracted
+and re-exports under their original module paths (so every path in this book still resolves):
+`realtime_localization_util` (the `pose_buffer` / `tpe` / `transform` modules — the Rust
+counterpart of the C++ `autoware_localization_util` shared library), `realtime_kdtree` (the
+bounded radius-search kd-tree), and `realtime_port_instrument` (the WCET counters and trace ABI
+behind the `wcet-count` / `wcet-trace` features).
+
 ## Why this crate exists
 
 - **Panic-free, WCET-bounded real time.** The align hot path is allocation-free after warmup,

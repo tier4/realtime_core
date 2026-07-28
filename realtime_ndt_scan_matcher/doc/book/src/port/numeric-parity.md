@@ -58,4 +58,4 @@ iteration count **exact**. On the real-map replay, iteration equality holds on 9
 would not have caught the rotated-pose subtleties. Differential fixtures for parity work should
 include **rotated** guesses at **large map coordinates**.
 
-> Source: `src/transform.rs`, `src/ndt.rs`, `src/derivatives.rs`.
+> Source: `../realtime_localization_util/src/transform.rs`, `src/ndt.rs`, `src/derivatives.rs`.

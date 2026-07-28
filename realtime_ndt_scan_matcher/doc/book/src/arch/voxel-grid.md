@@ -31,4 +31,4 @@ Each align iteration does one `radius_search` per source point, capped at `MAX_N
 kd-tree traversal is worst-case `O(N_leaves)` for adversarial point distributions — an **accepted
 residual** for the [WCET contract](../rt/wcet.md), benign for physical, roughly-uniform voxel maps.
 
-> Source: `src/voxel_grid.rs`, `src/kdtree.rs`.
+> Source: `src/voxel_grid.rs`, `../realtime_kdtree/src/lib.rs`.

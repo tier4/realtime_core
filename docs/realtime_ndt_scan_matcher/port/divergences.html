@@ -35,7 +35,7 @@
             const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-4fb7122e.js";
+            window.path_to_searchindex_js = "../searchindex-c251a41c.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../toc-427fc75c.js"></script>
@@ -235,11 +235,11 @@ so the valid-domain differential tests are unaffected. Added by the 2026-07-10 h
 convergence verdict is forced to <code>is_converged = false</code> when the align result pose is not finite,
 so no consumer publishes NaN/Inf downstream (the node gates every pose/TF publish on
 <code>is_converged</code>). Pinned by <code>run_align_gates_non_finite_pose_to_not_converged</code>.</li>
-<li><strong><code>asin</code> domain clamp</strong> (<code>src/transform.rs</code>, <code>matrix_to_euler</code>): the sine argument is
+<li><strong><code>asin</code> domain clamp</strong> (<code>../realtime_localization_util/src/transform.rs</code>, <code>matrix_to_euler</code>): the sine argument is
 clamped to <code>[-1, 1]</code> — FP error near gimbal can push <code>|m02|</code> past 1, where <code>asin</code> returns NaN
 (C++ uses the atan2-based Eigen <code>eulerAngles</code>, which cannot NaN). Pinned by
 <code>matrix_to_euler_clamps_asin_overshoot</code>.</li>
-<li><strong>Gauss-constants config clamp</strong> (<code>src/transform.rs</code>, <code>gauss_constants</code>): degenerate
+<li><strong>Gauss-constants config clamp</strong> (<code>../realtime_localization_util/src/transform.rs</code>, <code>gauss_constants</code>): degenerate
 configs (<code>resolution &lt;= 0</code>, <code>outlier_ratio</code> outside <code>(0, 1)</code>, non-finite) are clamped into the
 valid domain; the C++ (<code>computeTransformation</code> lines 229-233) yields <code>inf</code>/<code>log(0)</code>/NaN there,
 poisoning every score. Pinned by <code>gauss_constants_degenerate_configs_stay_finite</code> (+ a
@@ -265,7 +265,7 @@ implementation-defined <code>std::normal_distribution</code> sequence, because t
 (this is why exact candidate-trace equivalence for the TPE search is out of scope; see
 Verification).</p>
 <p><strong>Gimbal-lock RPY interpolation is kept C++-identical (an intentional non-divergence).</strong> The pose
-buffer’s quaternion↔RPY conversions (<code>src/pose_buffer.rs</code>) share tf2 <code>getRPY</code>’s singularity
+buffer’s quaternion↔RPY conversions (<code>../realtime_localization_util/src/pose_buffer.rs</code>) share tf2 <code>getRPY</code>’s singularity
 at pitch ±90°: the roll/yaw split is ill-conditioned there, giving a possibly-degenerate (but
 always finite, never panicking) interpolated orientation. Guarding it would change behavior where
 the C++ is equally degenerate, so parity wins.</p>

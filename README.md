@@ -10,6 +10,9 @@ real-time paths.
 | Crate | Description |
 |-------|-------------|
 | [`realtime_ndt_scan_matcher`](realtime_ndt_scan_matcher/) | Pure-Rust, ROS-free, `no_std`-capable core of the Autoware NDT (Normal Distributions Transform) localization engine. The numeric kernels mirror the C++ `Matrix4f` / `MultiVoxelGridCovariance` pipeline. The C ABI and ROS integration live in the sibling `autoware_ndt_scan_matcher_rs` node crate, not here. |
+| [`realtime_localization_util`](realtime_localization_util/) | Shared localization utilities: the `SmartPoseBuffer` and TPE (`TreeStructuredParzenEstimator`) ports — the Rust counterpart of the C++ `autoware_localization_util` shared library — plus the SE3 transform kernels. Re-exported by the NDT engine crate under its original module paths; intended for reuse by further localization ports. |
+| [`realtime_kdtree`](realtime_kdtree/) | Static 3-D kd-tree with bounded, iterative radius search (a `pcl::KdTreeFLANN` replacement). `no_std` + `alloc`, dependency-free. |
+| [`realtime_port_instrument`](realtime_port_instrument/) | Deterministic algorithmic-cost counters and the cross-language FNV/SHA trace ABI for WCET analysis of C++→Rust ports (the engine crate's `wcet-count` / `wcet-trace` features forward to its `count` / `trace`). |
 
 ## Building and testing
 

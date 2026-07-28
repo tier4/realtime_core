@@ -33,5 +33,5 @@ derivatives → 6×6 SVD solve → step) is [The align hot path](../arch/align.m
 The two scores NDT reports from a converged pose — transform probability and nearest-voxel
 transformation likelihood — are covered in [Scores: TP and NVTL](scores.md).
 
-> Source: `src/voxel_grid.rs`, `src/derivatives.rs`, `src/ndt.rs`, `src/transform.rs`
+> Source: `src/voxel_grid.rs`, `src/derivatives.rs`, `src/ndt.rs`, `../realtime_localization_util/src/transform.rs`
 > (`gauss_constants`).

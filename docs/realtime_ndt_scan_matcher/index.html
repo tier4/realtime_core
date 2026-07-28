@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-4fb7122e.js";
+            window.path_to_searchindex_js = "searchindex-c251a41c.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-427fc75c.js"></script>
@@ -187,6 +187,12 @@ algorithmic core — no <code>extern "C"</code>, no <code>rclcpp</code>, no ROS 
 relative to that crate root. The C ABI and the ROS 2 node — the FFI boundary, the <code>Host</code> vtable, the
 ROS node shell, and the C++→Rust symbol map — live in a separate ROS node crate that consumes this
 engine as a dependency; that integration is out of scope here.</p>
+<p>The engine crate sits in the <code>realtime_core</code> workspace next to three sibling crates it extracted
+and re-exports under their original module paths (so every path in this book still resolves):
+<code>realtime_localization_util</code> (the <code>pose_buffer</code> / <code>tpe</code> / <code>transform</code> modules — the Rust
+counterpart of the C++ <code>autoware_localization_util</code> shared library), <code>realtime_kdtree</code> (the
+bounded radius-search kd-tree), and <code>realtime_port_instrument</code> (the WCET counters and trace ABI
+behind the <code>wcet-count</code> / <code>wcet-trace</code> features).</p>
 <h2 id="why-this-crate-exists"><a class="header" href="#why-this-crate-exists">Why this crate exists</a></h2>
 <ul>
 <li><strong>Panic-free, WCET-bounded real time.</strong> The align hot path is allocation-free after warmup,

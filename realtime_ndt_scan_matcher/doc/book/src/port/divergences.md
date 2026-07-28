@@ -60,11 +60,11 @@ so the valid-domain differential tests are unaffected. Added by the 2026-07-10 h
   convergence verdict is forced to `is_converged = false` when the align result pose is not finite,
   so no consumer publishes NaN/Inf downstream (the node gates every pose/TF publish on
   `is_converged`). Pinned by `run_align_gates_non_finite_pose_to_not_converged`.
-- **`asin` domain clamp** (`src/transform.rs`, `matrix_to_euler`): the sine argument is
+- **`asin` domain clamp** (`../realtime_localization_util/src/transform.rs`, `matrix_to_euler`): the sine argument is
   clamped to `[-1, 1]` — FP error near gimbal can push `|m02|` past 1, where `asin` returns NaN
   (C++ uses the atan2-based Eigen `eulerAngles`, which cannot NaN). Pinned by
   `matrix_to_euler_clamps_asin_overshoot`.
-- **Gauss-constants config clamp** (`src/transform.rs`, `gauss_constants`): degenerate
+- **Gauss-constants config clamp** (`../realtime_localization_util/src/transform.rs`, `gauss_constants`): degenerate
   configs (`resolution <= 0`, `outlier_ratio` outside `(0, 1)`, non-finite) are clamped into the
   valid domain; the C++ (`computeTransformation` lines 229-233) yields `inf`/`log(0)`/NaN there,
   poisoning every score. Pinned by `gauss_constants_degenerate_configs_stay_finite` (+ a
@@ -94,7 +94,7 @@ implementation-defined `std::normal_distribution` sequence, because that sequenc
 Verification).
 
 **Gimbal-lock RPY interpolation is kept C++-identical (an intentional non-divergence).** The pose
-buffer's quaternion↔RPY conversions (`src/pose_buffer.rs`) share tf2 `getRPY`'s singularity
+buffer's quaternion↔RPY conversions (`../realtime_localization_util/src/pose_buffer.rs`) share tf2 `getRPY`'s singularity
 at pitch ±90°: the roll/yaw split is ill-conditioned there, giving a possibly-degenerate (but
 always finite, never panicking) interpolated orientation. Guarding it would change behavior where
 the C++ is equally degenerate, so parity wins.

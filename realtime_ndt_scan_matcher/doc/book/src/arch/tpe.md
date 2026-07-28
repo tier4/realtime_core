@@ -33,4 +33,4 @@ The sampler is plain Rust — no FFI. `TreeStructuredParzenEstimator` (`get_next
 types. The propose/evaluate search loop that drives it lives in the consuming ROS node, not this
 crate.
 
-> Source: `src/tpe.rs`.
+> Source: `../realtime_localization_util/src/tpe.rs`.

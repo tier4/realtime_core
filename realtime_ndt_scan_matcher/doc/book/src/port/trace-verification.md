@@ -17,7 +17,7 @@ The concrete align-service trace buffer — a semantic-event record covering the
 diagnostic level, the search summary, and the response payload (never raw ROS message bytes) — is
 part of the consuming ROS node crate, since the align service itself is. This engine crate
 contributes the piece that makes those traces reproducible: the deterministic, seedable TPE sampler
-(`src/tpe.rs`), so a fixed seed yields a fixed candidate sequence for the checks below.
+(`../realtime_localization_util/src/tpe.rs`), so a fixed seed yields a fixed candidate sequence for the checks below.
 
 ## Split by determinism
 
@@ -28,4 +28,4 @@ tolerance checks on the align outcome and property/statistical checks on search 
 Verification). Tolerances are established from measured C++ baseline self-variance,
 not invented up front.
 
-> Source: `src/tpe.rs` (the deterministic, seedable sampler that makes the search reproducible).
+> Source: `../realtime_localization_util/src/tpe.rs` (the deterministic, seedable sampler that makes the search reproducible).
