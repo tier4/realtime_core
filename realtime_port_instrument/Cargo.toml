@@ -5,6 +5,7 @@ edition = "2024"
 authors = ["Yuuki Takano", "TIER IV, Inc."]
 description = "Deterministic algorithmic-cost counters and the cross-language FNV/SHA trace ABI used to instrument C++-to-Rust real-time ports (WCET analysis). no_std, allocation-free."
 license = "MIT OR Apache-2.0"
+documentation = "https://tier4.github.io/realtime_core/"
 
 [features]
 # `count`: the algorithmic-cost counters (forwarded from the NDT engine crate's `wcet-count`).

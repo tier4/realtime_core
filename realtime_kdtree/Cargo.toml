@@ -5,6 +5,7 @@ edition = "2024"
 authors = ["Yuuki Takano", "TIER IV, Inc."]
 description = "Static 3-D kd-tree with bounded, iterative radius search (a pcl::KdTreeFLANN replacement). no_std + alloc; no dependencies."
 license = "MIT OR Apache-2.0"
+documentation = "https://tier4.github.io/realtime_core/"
 
 [features]
 # `count`: the deterministic traversal-cost counter API (`radius_search_counted`) for the WCET

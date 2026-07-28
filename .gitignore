@@ -63,5 +63,6 @@ dkms.conf
 **/*.rs.bk
 **/Cargo.lock
 
-# Generated mdbook output (source lives in doc/book/src; `mdbook build` regenerates this)
-realtime_ndt_scan_matcher/doc/book/book/
+# Generated mdbook output (source lives in mdbook/src; `mdbook build` regenerates this into the
+# tracked repo-root docs/ tree per mdbook/book.toml; this ignores only a stray default build dir)
+mdbook/book/

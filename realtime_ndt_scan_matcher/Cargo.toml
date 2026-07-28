@@ -5,7 +5,7 @@ edition = "2024"
 authors = ["Yuuki Takano", "TIER IV, Inc."]
 description = "Pure-Rust, ROS-free, no_std-capable core of the Autoware NDT (Normal Distributions Transform) localization engine."
 license = "MIT OR Apache-2.0"
-documentation = "https://tier4.github.io/realtime_core/realtime_ndt_scan_matcher/"
+documentation = "https://tier4.github.io/realtime_core/"
 
 [lib]
 # Pure-Rust engine library: consumed by the ROS node crate (`autoware_ndt_scan_matcher_rs`) as a
@@ -118,4 +118,4 @@ workspace = true
 # covers the engine. A consumer importing this crate from OUTSIDE the workspace (e.g. a no_std
 # kernel repo, via a git/path dependency) gets its own profile instead: that final binary must set
 # `overflow-checks = true` itself (and run the clippy gates in its CI) to keep the crate's
-# no-silent-overflow guarantee. See doc/book/src/rt/panic-free.md.
+# no-silent-overflow guarantee. See mdbook/src/rt/panic-free.md (at the workspace root).

@@ -1,0 +1,20 @@
+[build]
+# Publish the rendered book to the repo-root docs tree (tracked in git; served by GitHub Pages).
+# Relative to this book.toml: ../ climbs mdbook -> realtime_core; the book root is docs/index.html.
+build-dir = "../docs"
+
+[book]
+title = "realtime_core — real-time Rust ports of Autoware Core"
+authors = ["Yuuki Takano", "TIER IV, Inc."]
+language = "en"
+src = "src"
+description = "Design, real-time, and porting documentation for the realtime_core workspace: the ROS-free, no_std-capable NDT engine crate and the localization-util, kd-tree, and port-instrumentation crates."
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/autowarefoundation/autoware_core"
+additional-js = ["mermaid.min.js", "mermaid-init.js"]
+
+[preprocessor.mermaid]
+command = "mdbook-mermaid"

@@ -105,6 +105,7 @@ Current-engine search results are written under `bench/fixtures/fresh-search/`.
 
 ## Further documentation
 
-The documentation book starts at [`doc/book/src/SUMMARY.md`](doc/book/src/SUMMARY.md). It covers
+The workspace documentation book starts at [`../mdbook/src/SUMMARY.md`](../mdbook/src/SUMMARY.md)
+(published at <https://tier4.github.io/realtime_core/>). It covers
 the engine architecture, alignment kernel, map updates, numeric parity, trace verification,
 real-time constraints, allocation behavior, and the `no_std` configurations.

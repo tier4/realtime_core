@@ -5,6 +5,7 @@ edition = "2024"
 authors = ["Yuuki Takano", "TIER IV, Inc."]
 description = "Pure-Rust, ROS-free, no_std-capable localization utilities ported from Autoware's autoware_localization_util (SmartPoseBuffer, TPE pose search) plus the NDT SE3 transform kernels."
 license = "MIT OR Apache-2.0"
+documentation = "https://tier4.github.io/realtime_core/"
 
 [dependencies]
 # Pure-Rust libm: sqrt/log/trig in no_std, matching the C++ std math the ports mirror.
