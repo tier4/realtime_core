@@ -1,6 +1,8 @@
 [workspace]
 resolver = "3"
 members = [
+  "realtime_ekf_localizer",
+  "realtime_kalman_filter",
   "realtime_kdtree",
   "realtime_localization_util",
   "realtime_ndt_scan_matcher",
