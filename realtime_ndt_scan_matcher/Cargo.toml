@@ -1,6 +1,6 @@
 [package]
 name = "realtime_ndt_scan_matcher"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 authors = ["Yuuki Takano", "TIER IV, Inc."]
 description = "Pure-Rust, ROS-free, no_std-capable core of the Autoware NDT (Normal Distributions Transform) localization engine."
