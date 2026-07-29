@@ -44,6 +44,12 @@
 - [The `mt` multi-core engine](rt/mt.md)
 - [Panic-free, bounded execution](rt/panic-free.md)
 
+# Part VI — The EKF localizer port
+
+- [The Kalman filter crate](ekf/kalman-filter.md)
+- [The EKF localizer crate](ekf/ekf-localizer.md)
+- [FFI integration and real-time results](ekf/conformance.md)
+
 # Appendices
 
 - [Module index](appendix/modules.md)

@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Engine state and the config API - realtime_core — real-time Rust ports of Autoware Core</title>
+        <title>The EKF localizer crate - realtime_core — real-time Rust ports of Autoware Core</title>
 
 
         <!-- Custom HTML head -->
@@ -177,49 +177,38 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <h1 id="engine-state-and-the-config-api"><a class="header" href="#engine-state-and-the-config-api">Engine state and the config API</a></h1>
-<p>The engine’s data lives in <code>EngineState</code>, published through interior-mutability cells (see
-<a href="concurrency.html">Concurrency</a>). This chapter covers its fields and the <code>&amp;self</code> API that mutates them.</p>
-<h2 id="enginestate"><a class="header" href="#enginestate"><code>EngineState</code></a></h2>
+                        <h1 id="the-ekf-localizer-crate"><a class="header" href="#the-ekf-localizer-crate">The EKF localizer crate</a></h1>
+<p><code>realtime_ekf_localizer</code> is the ROS-free Rust counterpart of the C++ <code>autoware_ekf_localizer</code>
+package (<code>localization/autoware_ekf_localizer</code>): <code>no_std</code> + <code>alloc</code>, depending on
+<a href="kalman-filter.html"><code>realtime_kalman_filter</code></a> for the delay-augmented filter. Its modules map 1:1 to
+the C++ files:</p>
 <ul>
-<li><code>map</code> — the target <a href="voxel-grid.html"><code>VoxelGridMap</code></a>.</li>
-<li><code>params</code> — the <code>NdtParams</code> (resolution, epsilon, step size, iteration cap, outlier ratio,
-<code>num_threads</code>).</li>
-<li><code>conv</code> — the <code>ConvergenceParams</code> (<code>converged_param_type</code> + the two thresholds).</li>
-<li><code>cov_config</code> — the <code>CovarianceConfig</code> (estimation mode, scale, temperature, configured 6×6, XY
-search offsets).</li>
+<li>Math leaves — <code>state_transition</code>, <code>mahalanobis</code>, <code>measurement</code>, <code>covariance</code>, <code>numeric</code>,
+<code>aged_object_queue</code>, <code>simple_1d_filter</code>, and the <code>tf2_math</code> quaternion/Euler helpers
+(expression-exact ports of the tf2 formulas the EKF calls).</li>
+<li><code>hyper_parameters</code> — a plain struct (no parameter server).</li>
+<li><code>ekf_module</code> (<code>EkfModule</code>) — the ROS-free module: plain-struct measurements, <code>i64</code> nanosecond
+time, delay-table search/accumulation, and the pose/twist measurement-update decision chains.</li>
+<li><code>tick</code> (<code>EkfLocalizerCore</code>) — the port of the C++ <code>timer_callback</code> control flow: queue drain
+with aging/smoothing, the queue-size caps, and predict orchestration.</li>
+<li><code>trace</code> — the extended <code>AUTOWARE_EKF_POSE_TRACE</code> CSV rows used for conformance.</li>
 </ul>
-<p>Regularization is <strong>not</strong> part of <code>EngineState</code>; it lives in its own tiny cell so setting it per
-frame never clones the map.</p>
-<h2 id="config-setters-self"><a class="header" href="#config-setters-self">Config setters (<code>&amp;self</code>)</a></h2>
-<p><code>set_params</code>, <code>set_convergence_params</code>, <code>set_covariance_config</code>, and <code>set_regularization</code> publish new
-state. Each is a read-copy-update: clone the current state, mutate the field, publish (see
-<a href="concurrency.html">Concurrency</a>). <code>set_params</code> also rebuilds the (still-empty) map at the new
-resolution, mirroring the C++ order (params before <code>addTarget</code>).</p>
-<h2 id="map-lifecycle"><a class="header" href="#map-lifecycle">Map lifecycle</a></h2>
-<ul>
-<li><code>add_target(points, cell_id)</code> — register or replace a tile under its raw byte id;
-<code>remove_target(cell_id)</code> drops one. Bytewise key ordering makes final map assembly independent of
-tile arrival order.</li>
-<li><code>create_kdtree()</code> — rebuild the kd-tree over voxel centroids after tile changes.</li>
-<li><code>has_target()</code> — whether any tile is loaded.</li>
-<li><code>commit_from(&amp;src)</code> — atomically publish another engine’s fully-built state (the map-update commit;
-see <a href="map-update.html">Map update</a>).</li>
-<li><code>clone_empty()</code> — copy the config but start with an empty map (the rebuild path).</li>
-</ul>
-<blockquote>
-<p>Source: <code>realtime_ndt_scan_matcher/src/engine.rs</code>.</p>
-</blockquote>
+<p>Behavior equivalence with the C++ is governed by the port-equivalence contract
+(<code>porting_notes/ekf_port_contract.md</code> in the workspace repo): decisions match exactly, f64 chains
+match within <code>rel_tol = 1e-9</code>. The event path is real-time hardened onto preallocated scratch, with
+a counting-allocator test asserting zero allocations per event after warmup. The C ABI that exposes
+this core to the C++ package, and the measured integration results, are covered in
+<a href="conformance.html">FFI integration and real-time results</a>.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../arch/engine.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../ekf/kalman-filter.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
-                            <a rel="next prefetch" href="../arch/concurrency.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../ekf/conformance.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
@@ -229,11 +218,11 @@ see <a href="map-update.html">Map update</a>).</li>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../arch/engine.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../ekf/kalman-filter.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
-                    <a rel="next prefetch" href="../arch/concurrency.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../ekf/conformance.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>

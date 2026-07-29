@@ -13,6 +13,8 @@ real-time paths.
 | [`realtime_localization_util`](realtime_localization_util/README.md) | Shared localization utilities: the `SmartPoseBuffer` and TPE (`TreeStructuredParzenEstimator`) ports — the Rust counterpart of the C++ `autoware_localization_util` shared library — plus the SE3 transform kernels. Re-exported by the NDT engine crate under its original module paths; intended for reuse by further localization ports. |
 | [`realtime_kdtree`](realtime_kdtree/README.md) | Static 3-D kd-tree with bounded, iterative radius search (a `pcl::KdTreeFLANN` replacement). `no_std` + `alloc`, dependency-free. |
 | [`realtime_port_instrument`](realtime_port_instrument/README.md) | Deterministic algorithmic-cost counters and the cross-language FNV/SHA trace ABI for WCET analysis of C++→Rust ports (the engine crate's `wcet-count` / `wcet-trace` features forward to its `count` / `trace`). |
+| [`realtime_kalman_filter`](realtime_kalman_filter/README.md) | Pure-Rust, ROS-free, `no_std`-capable Kalman filter (the `KalmanFilter` + `TimeDelayKalmanFilter` ports of the C++ `autoware_kalman_filter`), on dynamically-sized nalgebra matrices with delay-augmented state. Used by `realtime_ekf_localizer`. |
+| [`realtime_ekf_localizer`](realtime_ekf_localizer/README.md) | Pure-Rust, ROS-free, `no_std`-capable EKF localizer core (the port of the C++ `autoware_ekf_localizer`): state transition, gating, delay-compensated pose/twist updates, and tick orchestration. Depends on `realtime_kalman_filter`; the C ABI and ROS node live in the fork's `autoware_ekf_localizer_rs`, not here. |
 
 ## Building and testing
 
