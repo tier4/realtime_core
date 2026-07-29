@@ -8,7 +8,7 @@ license = "MIT OR Apache-2.0"
 documentation = "https://tier4.github.io/realtime_core/"
 
 [dependencies]
-realtime_kalman_filter = { path = "../realtime_kalman_filter" }
+realtime_kalman_filter = { version = "0.1.0", path = "../realtime_kalman_filter" }
 # NOTE: realtime_localization_util's generic ZYX quaternion helpers were considered, but the
 # EKF mirrors tf2's exact formulas (getYaw sarg branches, Matrix3x3 getEulerYPR) in the local
 # tf2_math module instead, so this crate carries no dependency on it.
