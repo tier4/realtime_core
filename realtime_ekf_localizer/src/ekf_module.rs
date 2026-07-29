@@ -14,7 +14,7 @@ use crate::covariance::{
     ekf_covariance_to_pose_message_covariance, ekf_covariance_to_twist_message_covariance,
 };
 use crate::hyper_parameters::HyperParameters;
-use crate::mahalanobis::mahalanobis;
+use crate::mahalanobis::{MahalanobisScratch, mahalanobis_in};
 use crate::measurement::{
     pose_measurement_covariance, pose_measurement_matrix, twist_measurement_covariance,
     twist_measurement_matrix,
@@ -67,8 +67,71 @@ impl Default for EkfDiagnosticInfo {
     }
 }
 
+/// Preallocated per-event buffers for the RT-critical predict/update path (all sized at
+/// construction; the event path performs no heap allocation in steady state).
+#[derive(Clone, Debug)]
+struct ModuleScratch {
+    /// `6×1` predicted state handed to the delay filter.
+    x_next_dm: DMatrix<f64>,
+    /// `6×6` state-transition matrix.
+    a_dm: DMatrix<f64>,
+    /// `6×6` process-noise covariance.
+    q_dm: DMatrix<f64>,
+    /// `3×1` pose measurement vector.
+    y3: DMatrix<f64>,
+    /// `3×1` pose prediction at the delayed block.
+    y_ekf3: DMatrix<f64>,
+    /// `3×3` pose covariance block.
+    p_y3: DMatrix<f64>,
+    /// `3×6` pose measurement matrix.
+    c3: DMatrix<f64>,
+    /// `3×3` pose measurement covariance.
+    r3: DMatrix<f64>,
+    /// Pose Mahalanobis buffers.
+    mh3: MahalanobisScratch,
+    /// `2×1` twist measurement vector.
+    y2: DMatrix<f64>,
+    /// `2×1` twist prediction at the delayed block.
+    y_ekf2: DMatrix<f64>,
+    /// `2×2` twist covariance block.
+    p_y2: DMatrix<f64>,
+    /// `2×6` twist measurement matrix.
+    c2: DMatrix<f64>,
+    /// `2×2` twist measurement covariance.
+    r2: DMatrix<f64>,
+    /// Twist Mahalanobis buffers.
+    mh2: MahalanobisScratch,
+}
+
+impl ModuleScratch {
+    fn new() -> Self {
+        Self {
+            x_next_dm: DMatrix::zeros(6, 1),
+            a_dm: DMatrix::zeros(6, 6),
+            q_dm: DMatrix::zeros(6, 6),
+            y3: DMatrix::zeros(3, 1),
+            y_ekf3: DMatrix::zeros(3, 1),
+            p_y3: DMatrix::zeros(3, 3),
+            c3: DMatrix::zeros(3, 6),
+            r3: DMatrix::zeros(3, 3),
+            mh3: MahalanobisScratch::new(3),
+            y2: DMatrix::zeros(2, 1),
+            y_ekf2: DMatrix::zeros(2, 1),
+            p_y2: DMatrix::zeros(2, 2),
+            c2: DMatrix::zeros(2, 6),
+            r2: DMatrix::zeros(2, 2),
+            mh2: MahalanobisScratch::new(2),
+        }
+    }
+}
+
 /// The EKF module (port of `EKFModule`): a 6-state time-delay Kalman filter plus three scalar
 /// filters for z/roll/pitch.
+///
+/// The per-event methods (`predict_with_delay`, `measurement_update_pose`,
+/// `measurement_update_twist` and the getters they feed) are allocation-free in steady state:
+/// every dynamic-matrix temporary lives in [`ModuleScratch`] / the delay filter's own scratch,
+/// and state reads borrow the filter storage instead of copying it to the heap.
 #[derive(Clone, Debug)]
 pub struct EkfModule {
     kalman_filter: TimeDelayKalmanFilter,
@@ -80,6 +143,7 @@ pub struct EkfModule {
     pitch_filter: Simple1DFilter,
     last_angular_velocity: [f64; 3],
     ekf_dt: f64,
+    scratch: ModuleScratch,
 }
 
 /// `std::max(a, b)` for f64 with the C++ semantics: `(a < b) ? b : a`. Differs from
@@ -137,6 +201,7 @@ impl EkfModule {
             pitch_filter,
             last_angular_velocity: [0.0; 3],
             ekf_dt: 0.0,
+            scratch: ModuleScratch::new(),
         })
     }
 
@@ -231,13 +296,16 @@ impl EkfModule {
         })
     }
 
-    /// Latest 6×6 covariance as a fixed-size matrix.
+    /// Latest 6×6 covariance as a fixed-size (stack) matrix — borrows the filter storage,
+    /// no heap allocation.
     fn latest_p6(&self) -> Result<Matrix6<f64>, KalmanError> {
-        let p = self.kalman_filter.get_latest_p()?;
-        if p.nrows() != 6 || p.ncols() != 6 {
+        let p = self.kalman_filter.get_p_ex();
+        if p.nrows() < 6 || p.ncols() < 6 {
             return Err(KalmanError::DimensionMismatch);
         }
-        Ok(Matrix6::from_iterator(p.iter().copied()))
+        Ok(Matrix6::from_iterator(
+            p.view((0, 0), (6, 6)).iter().copied(),
+        ))
     }
 
     /// Pose message covariance (port of `get_current_pose_covariance`; z/roll/pitch variances
@@ -341,37 +409,45 @@ impl EkfModule {
         let a = create_state_transition_matrix(&x_curr, dt);
         let q = process_noise_covariance(proc_cov_yaw_d, proc_cov_vx_d, proc_cov_wz_d);
 
-        let x_next_dm = DMatrix::from_column_slice(6, 1, x_next.as_slice());
-        let a_dm = DMatrix::from_column_slice(6, 6, a.as_slice());
-        let q_dm = DMatrix::from_column_slice(6, 6, q.as_slice());
-        self.kalman_filter
-            .predict_with_delay(&x_next_dm, &a_dm, &q_dm)?;
+        // Stage the stack-computed model matrices in the preallocated dynamic buffers
+        // (column-major layouts match; no heap allocation).
+        self.scratch.x_next_dm.copy_from(&x_next);
+        self.scratch.a_dm.copy_from(&a);
+        self.scratch.q_dm.copy_from(&q);
+        self.kalman_filter.predict_with_delay(
+            &self.scratch.x_next_dm,
+            &self.scratch.a_dm,
+            &self.scratch.q_dm,
+        )?;
         self.ekf_dt = dt;
         Ok(())
     }
 
-    /// Latest 6-vector state.
+    /// Latest 6-vector state as a fixed-size (stack) vector — borrows the filter storage,
+    /// no heap allocation.
     fn latest_x6(&self) -> Result<Vector6<f64>, KalmanError> {
-        let x = self.kalman_filter.get_latest_x()?;
-        if x.nrows() != 6 || x.ncols() != 1 {
+        let x = self.kalman_filter.get_x_ex();
+        if x.nrows() < 6 || x.ncols() != 1 {
             return Err(KalmanError::DimensionMismatch);
         }
-        Ok(Vector6::from_column_slice(x.as_slice()))
+        Ok(Vector6::from_column_slice(
+            x.as_slice().get(0..6).ok_or(KalmanError::EmptyMatrix)?,
+        ))
     }
 
     /// Snapshot of the trace-extension state (latest x, P diagonal, scalar filters).
     fn trace_state(&self) -> ([f64; 6], [f64; 6], [f64; 3], [f64; 3]) {
         let mut state = [f64::NAN; 6];
         let mut p_diag = [f64::NAN; 6];
-        if let Ok(x) = self.kalman_filter.get_latest_x() {
-            for (dst, src) in state.iter_mut().zip(x.iter()) {
-                *dst = *src;
-            }
+        // Borrow the filter storage directly (no heap): an uninitialized filter leaves the
+        // NaN defaults exactly as the previous owning-getter path did on its error branch.
+        let x = self.kalman_filter.get_x_ex();
+        for (i, dst) in state.iter_mut().enumerate() {
+            *dst = x.as_slice().get(i).copied().unwrap_or(f64::NAN);
         }
-        if let Ok(p) = self.kalman_filter.get_latest_p() {
-            for (i, dst) in p_diag.iter_mut().enumerate() {
-                *dst = p.get((i, i)).copied().unwrap_or(f64::NAN);
-            }
+        let p = self.kalman_filter.get_p_ex();
+        for (i, dst) in p_diag.iter_mut().enumerate() {
+            *dst = p.get((i, i)).copied().unwrap_or(f64::NAN);
         }
         let filters = [
             self.z_filter.get_x(),
@@ -505,10 +581,12 @@ impl EkfModule {
         let yaw_error = normalize_yaw(yaw - ekf_yaw);
         yaw = yaw_error + ekf_yaw;
 
-        // Measurement vector.
-        let y = DMatrix::from_column_slice(3, 1, &[obs_x, obs_y, yaw]);
+        // Measurement vector (staged in the preallocated buffer).
+        self.scratch.y3[(0, 0)] = obs_x;
+        self.scratch.y3[(1, 0)] = obs_y;
+        self.scratch.y3[(2, 0)] = yaw;
 
-        if has_nan(&y) || has_inf(&y) {
+        if has_nan(&self.scratch.y3) || has_inf(&self.scratch.y3) {
             trace.push(self.make_trace_event(
                 EventKind::Pose,
                 t_curr_ns,
@@ -537,14 +615,21 @@ impl EkfModule {
             base.checked_add(idx::Y)
                 .ok_or(KalmanError::IndexOutOfRange)?,
         )?;
-        let y_ekf = DMatrix::from_column_slice(3, 1, &[y_ekf_x, y_ekf_y, ekf_yaw]);
-        let p_curr = self.kalman_filter.get_latest_p()?;
+        self.scratch.y_ekf3[(0, 0)] = y_ekf_x;
+        self.scratch.y_ekf3[(1, 0)] = y_ekf_y;
+        self.scratch.y_ekf3[(2, 0)] = ekf_yaw;
+        let p_curr = self.kalman_filter.get_p_ex();
         if p_curr.nrows() < 3 || p_curr.ncols() < 3 {
             return Err(KalmanError::DimensionMismatch);
         }
-        let p_y = p_curr.view((0, 0), (3, 3)).into_owned();
+        self.scratch.p_y3.copy_from(&p_curr.view((0, 0), (3, 3)));
 
-        let distance = mahalanobis(&y_ekf, &y, &p_y);
+        let distance = mahalanobis_in(
+            &self.scratch.y_ekf3,
+            &self.scratch.y3,
+            &self.scratch.p_y3,
+            &mut self.scratch.mh3,
+        );
         pose_diag_info.mahalanobis_distance =
             cpp_max(distance, pose_diag_info.mahalanobis_distance);
         if distance > self.params.pose_gate_dist {
@@ -567,14 +652,19 @@ impl EkfModule {
 
         let c = pose_measurement_matrix();
         let r = pose_measurement_covariance(&pose.covariance, self.params.pose_smoothing_steps);
-        let c_dm = DMatrix::from_column_slice(3, 6, c.as_slice());
-        let r_dm = DMatrix::from_column_slice(3, 3, r.as_slice());
+        self.scratch.c3.copy_from(&c);
+        self.scratch.r3.copy_from(&r);
 
         // The C++ discards updateWithDelay's bool (ekf_module.cpp:369): a failed LLT or a
         // non-finite gain leaves the state untouched and the update still counts as accepted.
         let _update_applied_inside_kf = self
             .kalman_filter
-            .update_with_delay(&y, &c_dm, &r_dm, delay_step)
+            .update_with_delay(
+                &self.scratch.y3,
+                &self.scratch.c3,
+                &self.scratch.r3,
+                delay_step,
+            )
             .is_ok();
 
         // Update the z/roll/pitch filters with delay compensation.
@@ -704,10 +794,11 @@ impl EkfModule {
             return Ok(false);
         }
 
-        // Measurement vector.
-        let y = DMatrix::from_column_slice(2, 1, &[twist.linear[0], twist.angular[2]]);
+        // Measurement vector (staged in the preallocated buffer).
+        self.scratch.y2[(0, 0)] = twist.linear[0];
+        self.scratch.y2[(1, 0)] = twist.angular[2];
 
-        if has_nan(&y) || has_inf(&y) {
+        if has_nan(&self.scratch.y2) || has_inf(&self.scratch.y2) {
             trace.push(self.make_trace_event(
                 EventKind::Twist,
                 t_curr_ns,
@@ -735,14 +826,20 @@ impl EkfModule {
             base.checked_add(idx::WZ)
                 .ok_or(KalmanError::IndexOutOfRange)?,
         )?;
-        let y_ekf = DMatrix::from_column_slice(2, 1, &[y_ekf_vx, y_ekf_wz]);
-        let p_curr = self.kalman_filter.get_latest_p()?;
+        self.scratch.y_ekf2[(0, 0)] = y_ekf_vx;
+        self.scratch.y_ekf2[(1, 0)] = y_ekf_wz;
+        let p_curr = self.kalman_filter.get_p_ex();
         if p_curr.nrows() < 6 || p_curr.ncols() < 6 {
             return Err(KalmanError::DimensionMismatch);
         }
-        let p_y = p_curr.view((4, 4), (2, 2)).into_owned();
+        self.scratch.p_y2.copy_from(&p_curr.view((4, 4), (2, 2)));
 
-        let distance = mahalanobis(&y_ekf, &y, &p_y);
+        let distance = mahalanobis_in(
+            &self.scratch.y_ekf2,
+            &self.scratch.y2,
+            &self.scratch.p_y2,
+            &mut self.scratch.mh2,
+        );
         twist_diag_info.mahalanobis_distance =
             cpp_max(distance, twist_diag_info.mahalanobis_distance);
         if distance > self.params.twist_gate_dist {
@@ -765,13 +862,18 @@ impl EkfModule {
 
         let c = twist_measurement_matrix();
         let r = twist_measurement_covariance(&twist.covariance, self.params.twist_smoothing_steps);
-        let c_dm = DMatrix::from_column_slice(2, 6, c.as_slice());
-        let r_dm = DMatrix::from_column_slice(2, 2, r.as_slice());
+        self.scratch.c2.copy_from(&c);
+        self.scratch.r2.copy_from(&r);
 
         // The C++ discards updateWithDelay's bool here as well.
         let _update_applied_inside_kf = self
             .kalman_filter
-            .update_with_delay(&y, &c_dm, &r_dm, delay_step)
+            .update_with_delay(
+                &self.scratch.y2,
+                &self.scratch.c2,
+                &self.scratch.r2,
+                delay_step,
+            )
             .is_ok();
 
         self.last_angular_velocity = twist.angular;

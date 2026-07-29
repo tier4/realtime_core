@@ -6,26 +6,21 @@
 
 use nalgebra::DMatrix;
 
-/// Eigen `compute_inverse<..., 2>`: analytic 2×2 inverse (no singularity check).
+/// Eigen `compute_inverse<..., 2>`: analytic 2×2 inverse (no singularity check), written
+/// into `out` (allocation-free; all four entries overwritten).
 #[allow(
     clippy::arithmetic_side_effects,
     clippy::indexing_slicing,
     clippy::allow_attributes,
     reason = "f64 math; constant indices into a dimension-checked 2x2 matrix"
 )]
-fn inverse2(m: &DMatrix<f64>) -> DMatrix<f64> {
+fn inverse2_into(m: &DMatrix<f64>, out: &mut DMatrix<f64>) {
     let det = m[(0, 0)] * m[(1, 1)] - m[(1, 0)] * m[(0, 1)];
     let invdet = 1.0 / det;
-    DMatrix::from_row_slice(
-        2,
-        2,
-        &[
-            m[(1, 1)] * invdet,
-            -m[(0, 1)] * invdet,
-            -m[(1, 0)] * invdet,
-            m[(0, 0)] * invdet,
-        ],
-    )
+    out[(0, 0)] = m[(1, 1)] * invdet;
+    out[(0, 1)] = -m[(0, 1)] * invdet;
+    out[(1, 0)] = -m[(1, 0)] * invdet;
+    out[(1, 1)] = m[(0, 0)] * invdet;
 }
 
 /// Eigen `cofactor_3x3<i, j>`.
@@ -43,26 +38,25 @@ fn cofactor3(m: &DMatrix<f64>, i: usize, j: usize) -> f64 {
     m[(i1, j1)] * m[(i2, j2)] - m[(i1, j2)] * m[(i2, j1)]
 }
 
-/// Eigen `compute_inverse<..., 3>`: analytic cofactor 3×3 inverse (no singularity check).
+/// Eigen `compute_inverse<..., 3>`: analytic cofactor 3×3 inverse (no singularity check),
+/// written into `out` (allocation-free; all nine entries overwritten).
 #[allow(
     clippy::arithmetic_side_effects,
     clippy::indexing_slicing,
     clippy::allow_attributes,
     reason = "f64 math; constant indices into a dimension-checked 3x3 matrix"
 )]
-fn inverse3(m: &DMatrix<f64>) -> DMatrix<f64> {
+fn inverse3_into(m: &DMatrix<f64>, out: &mut DMatrix<f64>) {
     let c00 = cofactor3(m, 0, 0);
     let c10 = cofactor3(m, 1, 0);
     let c20 = cofactor3(m, 2, 0);
     let det = c00 * m[(0, 0)] + c10 * m[(0, 1)] + c20 * m[(0, 2)];
     let invdet = 1.0 / det;
-    let mut out = DMatrix::zeros(3, 3);
     for i in 0..3 {
         for j in 0..3 {
             out[(j, i)] = cofactor3(m, i, j) * invdet;
         }
     }
-    out
 }
 
 /// Matrix inverse dispatching on runtime size like Eigen's dynamic `.inverse()` (analytic for
@@ -70,13 +64,75 @@ fn inverse3(m: &DMatrix<f64>) -> DMatrix<f64> {
 #[must_use]
 fn eigen_like_inverse(c: &DMatrix<f64>) -> DMatrix<f64> {
     match c.nrows() {
-        2 if c.ncols() == 2 => inverse2(c),
-        3 if c.ncols() == 3 => inverse3(c),
+        2 if c.ncols() == 2 => {
+            let mut out = DMatrix::zeros(2, 2);
+            inverse2_into(c, &mut out);
+            out
+        }
+        3 if c.ncols() == 3 => {
+            let mut out = DMatrix::zeros(3, 3);
+            inverse3_into(c, &mut out);
+            out
+        }
         _ => c
             .clone()
             .try_inverse()
             .unwrap_or_else(|| DMatrix::from_element(c.nrows(), c.ncols(), f64::NAN)),
     }
+}
+
+/// Preallocated buffers for the allocation-free Mahalanobis path (one instance per
+/// measurement dimension; sized at construction).
+#[derive(Clone, Debug)]
+pub struct MahalanobisScratch {
+    /// `m×1` difference `x - y`.
+    d: DMatrix<f64>,
+    /// `m×m` analytic inverse of the covariance.
+    inv: DMatrix<f64>,
+    /// `m×1` product `C⁻¹·d`.
+    out: DMatrix<f64>,
+}
+
+impl MahalanobisScratch {
+    /// Buffers for `dim`-dimensional inputs (`dim` must be 2 or 3 — the analytic-inverse
+    /// sizes the EKF uses).
+    #[must_use]
+    pub fn new(dim: usize) -> Self {
+        Self {
+            d: DMatrix::zeros(dim, 1),
+            inv: DMatrix::zeros(dim, dim),
+            out: DMatrix::zeros(dim, 1),
+        }
+    }
+}
+
+/// Allocation-free [`mahalanobis`]: identical arithmetic (same analytic inverse expressions,
+/// same gemv/dot kernels) with every temporary taken from `scratch`.
+///
+/// WCET contract (RT-critical): no allocation; no panic for inputs matching the scratch
+/// dimension (2 or 3); work bounded by `m²`. Falls back to NaN (never an error) exactly like
+/// the allocating path when the covariance is singular or the dimension is unsupported.
+#[expect(clippy::arithmetic_side_effects, reason = "nalgebra f64 matrix math")]
+#[must_use]
+pub fn mahalanobis_in(
+    x: &DMatrix<f64>,
+    y: &DMatrix<f64>,
+    c: &DMatrix<f64>,
+    scratch: &mut MahalanobisScratch,
+) -> f64 {
+    let m = scratch.d.nrows();
+    if x.nrows() != m || y.nrows() != m || c.nrows() != m || c.ncols() != m {
+        return f64::NAN;
+    }
+    scratch.d.copy_from(x);
+    scratch.d -= y;
+    match m {
+        2 => inverse2_into(c, &mut scratch.inv),
+        3 => inverse3_into(c, &mut scratch.inv),
+        _ => return f64::NAN,
+    }
+    scratch.out.gemm(1.0, &scratch.inv, &scratch.d, 0.0);
+    libm::sqrt(scratch.out.dot(&scratch.d))
 }
 
 /// Squared Mahalanobis distance `dᵀ C⁻¹ d` with `d = x - y` (port of `squared_mahalanobis`).
