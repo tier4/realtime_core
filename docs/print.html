@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-ac6a3ed8.js";
+            window.path_to_searchindex_js = "searchindex-8cd22a94.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-d0d0c830.js"></script>
+        <script src="toc-ea50c242.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -1239,6 +1239,100 @@ Lint gates and suppression policy).</p>
 <p>Source: <code>realtime_ndt_scan_matcher/Cargo.toml</code> <code>[lints]</code>; the workspace root <code>Cargo.toml</code>
 <code>[profile.release]</code>; <code>realtime_ndt_scan_matcher/src/ndt.rs</code>.</p>
 </blockquote>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="the-kalman-filter-crate"><a class="header" href="#the-kalman-filter-crate">The Kalman filter crate</a></h1>
+<p><code>realtime_kalman_filter</code> is the ROS-free Rust counterpart of the C++ <code>autoware_kalman_filter</code>
+package (<code>common/autoware_kalman_filter</code>): <code>no_std</code> + <code>alloc</code>, matrix math on nalgebra <code>DMatrix</code>
+mirroring <code>Eigen::MatrixXd</code>. It holds two filters:</p>
+<ul>
+<li><code>kalman_filter</code> (<code>realtime_kalman_filter/src/kalman_filter.rs</code>) — the <code>KalmanFilter</code> port
+(<code>kalman_filter.cpp</code>), an LLT-solved gain over dynamically-sized matrices.</li>
+<li><code>time_delay_kalman_filter</code> (<code>realtime_kalman_filter/src/time_delay_kalman_filter.rs</code>) — the
+<code>TimeDelayKalmanFilter</code> port (<code>time_delay_kalman_filter.cpp</code>), the delay-augmented
+<code>DIM_X × MAX_DELAY_STEP</code> extended state the EKF localizer runs on, fusing measurements at an
+arbitrary delay step.</li>
+</ul>
+<p>Every C++ <code>return false</code> guard becomes a typed <code>KalmanError</code> returned to the caller (no hidden
+panics). Numeric parity is pinned by a differential golden-vector test against a frozen C++ (Eigen)
+dump within the port-equivalence contract tolerance (<code>rel_tol = 1e-9</code>).</p>
+<p>The <a href="#the-ekf-localizer-crate">EKF localizer crate</a> is the primary consumer.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="the-ekf-localizer-crate"><a class="header" href="#the-ekf-localizer-crate">The EKF localizer crate</a></h1>
+<p><code>realtime_ekf_localizer</code> is the ROS-free Rust counterpart of the C++ <code>autoware_ekf_localizer</code>
+package (<code>localization/autoware_ekf_localizer</code>): <code>no_std</code> + <code>alloc</code>, depending on
+<a href="#the-kalman-filter-crate"><code>realtime_kalman_filter</code></a> for the delay-augmented filter. Its modules map 1:1 to
+the C++ files:</p>
+<ul>
+<li>Math leaves — <code>state_transition</code>, <code>mahalanobis</code>, <code>measurement</code>, <code>covariance</code>, <code>numeric</code>,
+<code>aged_object_queue</code>, <code>simple_1d_filter</code>, and the <code>tf2_math</code> quaternion/Euler helpers
+(expression-exact ports of the tf2 formulas the EKF calls).</li>
+<li><code>hyper_parameters</code> — a plain struct (no parameter server).</li>
+<li><code>ekf_module</code> (<code>EkfModule</code>) — the ROS-free module: plain-struct measurements, <code>i64</code> nanosecond
+time, delay-table search/accumulation, and the pose/twist measurement-update decision chains.</li>
+<li><code>tick</code> (<code>EkfLocalizerCore</code>) — the port of the C++ <code>timer_callback</code> control flow: queue drain
+with aging/smoothing, the queue-size caps, and predict orchestration.</li>
+<li><code>trace</code> — the extended <code>AUTOWARE_EKF_POSE_TRACE</code> CSV rows used for conformance.</li>
+</ul>
+<p>Behavior equivalence with the C++ is governed by the port-equivalence contract
+(<code>porting_notes/ekf_port_contract.md</code> in the workspace repo): decisions match exactly, f64 chains
+match within <code>rel_tol = 1e-9</code>. The event path is real-time hardened onto preallocated scratch, with
+a counting-allocator test asserting zero allocations per event after warmup. The C ABI that exposes
+this core to the C++ package, and the measured integration results, are covered in
+<a href="#ffi-integration-and-real-time-results">FFI integration and real-time results</a>.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="ffi-integration-and-real-time-results"><a class="header" href="#ffi-integration-and-real-time-results">FFI integration and real-time results</a></h1>
+<p>The Rust EKF core is integrated into the C++ <code>autoware_ekf_localizer</code> package behind
+<code>-DEKF_USE_RUST=ON</code>: the <code>autoware_ekf_localizer_rs</code> staticlib (in the fork, branch <code>ekf_in_rust</code>)
+exposes the core over a C ABI that mirrors the C++ <code>EKFModule</code> 1:1, and a thin <code>ekf_module_rs.cpp</code>
+adapter drives it. This chapter distills §8 of the port-equivalence contract
+(<code>porting_notes/ekf_port_contract.md</code>); the numbers below are the contract’s frozen measured
+values, quoted literally.</p>
+<h2 id="conformance--byte-identity"><a class="header" href="#conformance--byte-identity">Conformance — byte-identity</a></h2>
+<ul>
+<li>The C++ test suite passes unchanged under both backends: <strong>152/152</strong> colcon tests with
+<code>EKF_USE_RUST=ON</code> (and <code>OFF</code> unaffected), plus <strong>178</strong> workspace tests.</li>
+<li>Over the frozen 13-scenario corpus, the Rust backend reaches <strong>100 % decision agreement</strong> with
+the frozen C++ fixtures at the same per-scenario numerics as the native run (worst synthetic
+relative error <code>3.0e-10</code>, real-data within the §3 policy).</li>
+<li>Every trace is <strong>byte-identical</strong> to the native Rust replay (<code>cmp</code>) — same core, same trace
+writer, exercised through the C ABI.</li>
+</ul>
+<h2 id="real-time-hardening--allocation-free-event-path"><a class="header" href="#real-time-hardening--allocation-free-event-path">Real-time hardening — allocation-free event path</a></h2>
+<p>The event path (both <code>realtime_kalman_filter</code> and <code>realtime_ekf_localizer</code>) was reworked onto
+preallocated scratch: extended-dim buffers sized at init, in-place gemm through the same nalgebra
+kernels, and a hand-rolled in-place LLT transcribed from nalgebra’s <code>Cholesky</code> loops (verified
+bit-equal on randomized factors). The FFI layer skips CSV serialization entirely when no trace
+stream is open.</p>
+<ul>
+<li><strong>Invariance held</strong>: the 13-scenario corpus still passes and the traces are byte-identical to
+the pre-hardening Rust build.</li>
+<li>A counting-allocator gate (<code>realtime_ekf_localizer/tests/zero_alloc.rs</code>) asserts <strong>0
+allocations per event</strong> after warmup for predict and accepted/rejected pose/twist updates
+(measured residual <code>≈0.5</code> allocs/event is the replay harness’s line parsing, not the filter).</li>
+<li>Rust compute improved <strong>10–15 %</strong>, dropping the Rust-vs-C++ compute ratio from <strong>1.42×</strong> to
+<strong>1.25–1.29×</strong>.</li>
+</ul>
+<h2 id="corrected-overflow-checks-attribution"><a class="header" href="#corrected-overflow-checks-attribution">Corrected overflow-checks attribution</a></h2>
+<p>§8.3 first attributed roughly half of the remaining FFI-backend excess to <code>overflow-checks</code>. The
+refined finding (§8.5) is that this tax lives in <strong>nalgebra’s</strong> internal <code>copy_from</code>/<code>gemm</code>/<code>axpy</code>
+loops — bounded loop-counter arithmetic that cannot overflow in practice — <strong>not</strong> in the
+<code>realtime_*</code> crates, whose own integer arithmetic already uses <code>checked_*</code>. It is therefore removed
+safely with a <strong>per-package profile override</strong> setting <code>overflow-checks = false</code> for <code>nalgebra</code>
+only, applied in both <code>realtime_core/Cargo.toml</code> and the vendored FFI crate’s manifest (the profile
+Corrosion compiles the static lib with). Every <code>realtime_*</code> crate keeps <code>overflow-checks = true</code>, so
+its integer arithmetic still fails loudly.</p>
+<p>The attribution splits as <strong>~79 %</strong> of the overflow-checks tax inside nalgebra (removed) and
+<strong>~21 %</strong> in the still-checked crates (kept) — a deliberate safety/perf split, not a blanket flag
+flip.</p>
+<h2 id="result"><a class="header" href="#result">Result</a></h2>
+<p>With the nalgebra override in place, the shipping FFI-Rust EKF backend runs within
+<strong>1.06–1.09×</strong> of the header-only, fully-inlined C++/Eigen backend (down from 1.26×), with no
+numeric change and the crates’ overflow safety intact. The residual gap is the ISA-matched
+nalgebra-vs-Eigen kernel cost (the naive rank-m covariance downdate) plus the inherent
+FFI/<code>geometry_msgs</code> marshaling; closing it further would break trace byte-identity or require
+<code>-march</code>/target-cpu tuning on both backends, out of scope for the port.</p>
+<p>The closed-loop smoke (C++ NDT + hardened Rust EKF, 600 s) produced <strong>50.00 Hz</strong> EKF output with
+inter-pose gap p99 = 20.0 ms and zero gaps over 100 ms — indistinguishable from the C++ baseline.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="module-index"><a class="header" href="#module-index">Module index</a></h1>
 <p>One line per Rust source module in the engine crate (<code>realtime_ndt_scan_matcher/src/</code>). Modules

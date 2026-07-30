@@ -1,6 +1,8 @@
 [workspace]
 resolver = "3"
 members = [
+  "realtime_ekf_localizer",
+  "realtime_kalman_filter",
   "realtime_kdtree",
   "realtime_localization_util",
   "realtime_ndt_scan_matcher",
@@ -40,3 +42,12 @@ pedantic = { level = "warn", priority = -1 }
 
 [profile.release]
 overflow-checks = true
+
+# The nalgebra dependency's internal gemm/copy/axpy loops carry integer loop-counter and
+# index arithmetic that cannot overflow in practice (bounded by fixed matrix dimensions), yet
+# `overflow-checks = true` inserts a check on every such op — §8.3/§8.5 measured this as the
+# dominant removable slowdown in the EKF predict path. Disable the checks for nalgebra ONLY;
+# every realtime_* crate keeps overflow-checks = true (the profile default above), so our own
+# arithmetic still fails loudly on overflow.
+[profile.release.package.nalgebra]
+overflow-checks = false

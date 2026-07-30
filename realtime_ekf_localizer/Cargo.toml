@@ -1,0 +1,20 @@
+[package]
+name = "realtime_ekf_localizer"
+version = "0.1.0"
+edition = "2024"
+authors = ["Yuuki Takano", "TIER IV, Inc."]
+description = "Pure-Rust, ROS-free, no_std-capable EKF localizer core ported from Autoware's autoware_ekf_localizer (state transition, gating, delay-compensated pose/twist updates, tick orchestration)."
+license = "MIT OR Apache-2.0"
+documentation = "https://tier4.github.io/realtime_core/"
+
+[dependencies]
+realtime_kalman_filter = { version = "0.1.0", path = "../realtime_kalman_filter" }
+# NOTE: realtime_localization_util's generic ZYX quaternion helpers were considered, but the
+# EKF mirrors tf2's exact formulas (getYaw sarg branches, Matrix3x3 getEulerYPR) in the local
+# tf2_math module instead, so this crate carries no dependency on it.
+# Pure-Rust libm: trig/sqrt in no_std, matching the C++ std math the port mirrors.
+libm = "0.2"
+nalgebra = { version = "0.33", default-features = false, features = ["libm", "alloc"] }
+
+[lints]
+workspace = true
