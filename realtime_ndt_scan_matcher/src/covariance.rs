@@ -68,14 +68,13 @@ pub fn calculate_weighted_mean_and_cov(
     weights: &[f64],
 ) -> ([f64; 2], [f64; 4]) {
     let mut mean = Vector2::zeros();
-    for (chunk, &w) in poses2d_flat.chunks_exact(2).zip(weights.iter()) {
-        let [px, py] = chunk else { continue };
-        mean += w * Vector2::new(*px, *py);
+    let (points, _) = poses2d_flat.as_chunks::<2>();
+    for (&[px, py], &w) in points.iter().zip(weights.iter()) {
+        mean += w * Vector2::new(px, py);
     }
     let mut cov = Matrix2::zeros();
-    for (chunk, &w) in poses2d_flat.chunks_exact(2).zip(weights.iter()) {
-        let [px, py] = chunk else { continue };
-        let diff = Vector2::new(*px, *py) - mean;
+    for (&[px, py], &w) in points.iter().zip(weights.iter()) {
+        let diff = Vector2::new(px, py) - mean;
         cov += w * (diff * diff.transpose());
     }
     ([mean.x, mean.y], to_row_major(&cov))
